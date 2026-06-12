@@ -3,95 +3,19 @@ extends Node3D
 const BATTLE_ACTOR_SCENE: PackedScene = preload("res://Scenes/Battle_Actor.tscn")
 const BATTLE_ACTOR_SCRIPT: Script = preload("res://Scenes/battle_actor.gd")
 
-const ARENA_ACTOR_CONFIGS := [
-	{
-		"name": "Actor_Friend1",
-		"position": Vector3(2.5, 1.0, 2.5),
-		"animation": "Canin",
-		"label": "Caine",
-		"max_hp": 120,
-		"attack": 25,
-		"defense": 4,
-		"speed": 22.0,
-		"enemy": false,
-	},
-	{
-		"name": "Actor_Friend2",
-		"position": Vector3(2.5, 1.0, 7.0),
-		"animation": "Alyssa",
-		"label": "Alyssa",
-		"max_hp": 100,
-		"attack": 16,
-		"defense": 3,
-		"speed": 18.0,
-		"enemy": false,
-	},
-	{
-		"name": "Actor_Friend3",
-		"position": Vector3(7.0, 1.0, 2.5),
-		"animation": "Zeke",
-		"label": "Zeke",
-		"max_hp": 100,
-		"attack": 17,
-		"defense": 3,
-		"speed": 20.0,
-		"enemy": false,
-	},
-	{
-		"name": "Actor_Friend4",
-		"position": Vector3(7.0, 1.0, 7.0),
-		"animation": "Ster",
-		"label": "Ster",
-		"max_hp": 115,
-		"attack": 19,
-		"defense": 4,
-		"speed": 17.0,
-		"enemy": false,
-	},
-	{
-		"name": "Actor_Enemy1",
-		"position": Vector3(-7.0, 1.0, 7.0),
-		"animation": "Lyre",
-		"label": "Lyre",
-		"max_hp": 100,
-		"attack": 16,
-		"defense": 3,
-		"speed": 20.0,
-		"enemy": true,
-	},
-	{
-		"name": "Actor_Enemy2",
-		"position": Vector3(-7.0, 1.0, 2.5),
-		"animation": "Albert",
-		"label": "Albert",
-		"max_hp": 100,
-		"attack": 16,
-		"defense": 3,
-		"speed": 18.0,
-		"enemy": true,
-	},
-	{
-		"name": "Actor_Enemy3",
-		"position": Vector3(-2.5, 1.0, 2.5),
-		"animation": "Jack",
-		"label": "Jack",
-		"max_hp": 105,
-		"attack": 17,
-		"defense": 3,
-		"speed": 19.0,
-		"enemy": true,
-	},
-	{
-		"name": "Actor_Enemy4",
-		"position": Vector3(-2.5, 1.0, 7.0),
-		"animation": "Logos",
-		"label": "Logos",
-		"max_hp": 110,
-		"attack": 18,
-		"defense": 4,
-		"speed": 16.0,
-		"enemy": true,
-	},
+const DEFAULT_CONFIG_PATH := "res://Data/battle_actors.cfg"
+const USER_CONFIG_PATH    := "user://battle_actors.cfg"
+
+# Arena Config
+const ARENA_SLOTS := [
+	{ "name": "Actor_Friend1", "position": Vector3( 2.5, 1.0, 2.5), "enemy": false, "character": "Caine"  },
+	{ "name": "Actor_Friend2", "position": Vector3( 2.5, 1.0, 7.0), "enemy": false, "character": "Alyssa" },
+	{ "name": "Actor_Friend3", "position": Vector3( 7.0, 1.0, 2.5), "enemy": false, "character": "Zeke"   },
+	{ "name": "Actor_Friend4", "position": Vector3( 7.0, 1.0, 7.0), "enemy": false, "character": "Ster"   },
+	{ "name": "Actor_Enemy1",  "position": Vector3(-7.0, 1.0, 7.0), "enemy": true,  "character": "Lyre"   },
+	{ "name": "Actor_Enemy2",  "position": Vector3(-7.0, 1.0, 2.5), "enemy": true,  "character": "Albert" },
+	{ "name": "Actor_Enemy3",  "position": Vector3(-2.5, 1.0, 2.5), "enemy": true,  "character": "Jack"   },
+	{ "name": "Actor_Enemy4",  "position": Vector3(-2.5, 1.0, 7.0), "enemy": true,  "character": "Logos"  },
 ]
 
 var actor_friend1: Node = null
@@ -115,8 +39,71 @@ func _unhandled_input(event: InputEvent) -> void:
 		_actor_friend1_attacks_enemy1()
 
 
+func _load_cfg() -> ConfigFile:
+	# On first run copy the bundled default to user:// so it stays editable.
+	if not FileAccess.file_exists(USER_CONFIG_PATH):
+		var src := FileAccess.open(DEFAULT_CONFIG_PATH, FileAccess.READ)
+		if src != null:
+			var content := src.get_as_text()
+			src.close()
+			var dst := FileAccess.open(USER_CONFIG_PATH, FileAccess.WRITE)
+			if dst != null:
+				dst.store_string(content)
+				dst.close()
+
+	var load_path := USER_CONFIG_PATH if FileAccess.file_exists(USER_CONFIG_PATH) else DEFAULT_CONFIG_PATH
+	var cfg := ConfigFile.new()
+	var err := cfg.load(load_path)
+	if err != OK:
+		push_error("battle_arena: failed to load config from %s (error %d)" % [load_path, err])
+		return null
+	return cfg
+
+
+func _load_actor_configs() -> Array:
+	var roster := _load_roster()
+	var configs: Array = []
+	for slot in ARENA_SLOTS:
+		var char_key: String = str(slot.get("character", ""))
+		var char_data: Dictionary = roster.get(char_key, {})
+		if char_data.is_empty():
+			push_warning("battle_arena: slot '%s' references unknown character '%s'" % [slot["name"], char_key])
+		configs.append({
+			"name":      slot["name"],
+			"position":  slot["position"],
+			"enemy":     slot["enemy"],
+			"animation": char_data.get("animation", "Canin"),
+			"label":     char_data.get("label", char_key),
+			"max_hp":    char_data.get("max_hp", 100),
+			"attack":    char_data.get("attack", 10),
+			"defense":   char_data.get("defense", 0),
+			"speed":     char_data.get("speed", 10.0),
+		})
+	return configs
+
+
+func _load_roster() -> Dictionary:
+	var cfg := _load_cfg()
+	if cfg == null:
+		return {}
+	var roster: Dictionary = {}
+	for section in cfg.get_sections():
+		if not section.begins_with("character."):
+			continue
+		var char_name: String = section.substr(len("character."))
+		roster[char_name] = {
+			"animation": str(cfg.get_value(section, "animation", "Canin")),
+			"label":     str(cfg.get_value(section, "label", char_name)),
+			"max_hp":    int(cfg.get_value(section, "max_hp", 100)),
+			"attack":    int(cfg.get_value(section, "attack", 10)),
+			"defense":   int(cfg.get_value(section, "defense", 0)),
+			"speed":     float(cfg.get_value(section, "speed", 10.0)),
+		}
+	return roster
+
+
 func _spawn_arena_actors() -> void:
-	for config in ARENA_ACTOR_CONFIGS:
+	for config in _load_actor_configs():
 		_spawn_actor_from_template(config)
 
 
