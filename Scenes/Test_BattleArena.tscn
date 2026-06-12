@@ -1,5 +1,6 @@
 [gd_scene format=3 uid="uid://x0yvsxftngkk"]
 
+[ext_resource type="Script" uid="uid://lx1f231lkpev" path="res://Scenes/test_battle_arena.gd" id="1_tdlpj"]
 [ext_resource type="PackedScene" uid="uid://ddtsr0nup5tl8" path="res://Scenes/Battle_Actor.tscn" id="1_w1wd0"]
 [ext_resource type="Texture2D" uid="uid://dngbh75s21j8e" path="res://Textures/Sprites/Alyssa.png" id="2_08bss"]
 [ext_resource type="Texture2D" uid="uid://b1l13fkpsx41j" path="res://Textures/Sprites/Albert.png" id="2_w1wd0"]
@@ -288,6 +289,7 @@ animations = [{
 }]
 
 [node name="Node3D" type="Node3D" unique_id=36784763]
+script = ExtResource("1_tdlpj")
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=326406874]
 transform = Transform3D(1, 0, 0, 0, 0.9396927, 0.34202015, 0, -0.34202015, 0.9396927, 0, 5.8201227, 16.234592)

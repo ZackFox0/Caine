@@ -283,10 +283,10 @@ viewport_path = NodePath("Sprite3D/SubViewport")
 [sub_resource type="Theme" id="Theme_5kmxp"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jluoo"]
-bg_color = Color(0.5294118, 0.2, 0.7921569, 1)
+bg_color = Color(0, 0.42363286, 0.70050144, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bnhm3"]
-bg_color = Color(0.1254902, 0.70980394, 0, 1)
+bg_color = Color(1, 0, 0, 1)
 
 [node name="Battle_Actor" type="StaticBody3D" unique_id=715952881]
 script = ExtResource("1_gpqyj")
@@ -309,9 +309,11 @@ texture = SubResource("ViewportTexture_ttr5y")
 [node name="SubViewport" type="SubViewport" parent="Sprite3D" unique_id=1479368535]
 transparent_bg = true
 
-[node name="ProgressBar" type="ProgressBar" parent="Sprite3D/SubViewport" unique_id=1403019037]
-offset_right = 1152.0
-offset_bottom = 34.0
+[node name="ActionBar" type="ProgressBar" parent="Sprite3D/SubViewport" unique_id=1403019037]
+offset_left = 46.0
+offset_top = 14.0
+offset_right = 442.0
+offset_bottom = 48.0
 theme = SubResource("Theme_5kmxp")
 theme_override_styles/background = SubResource("StyleBoxFlat_jluoo")
 theme_override_styles/fill = SubResource("StyleBoxFlat_bnhm3")
