@@ -1,15 +1,6 @@
 [gd_scene format=3 uid="uid://x0yvsxftngkk"]
 
 [ext_resource type="Script" uid="uid://lx1f231lkpev" path="res://Scenes/test_battle_arena.gd" id="1_tdlpj"]
-[ext_resource type="PackedScene" uid="uid://ddtsr0nup5tl8" path="res://Scenes/Battle_Actor.tscn" id="1_w1wd0"]
-[ext_resource type="Texture2D" uid="uid://dngbh75s21j8e" path="res://Textures/Sprites/Alyssa.png" id="2_08bss"]
-[ext_resource type="Texture2D" uid="uid://b1l13fkpsx41j" path="res://Textures/Sprites/Albert.png" id="2_w1wd0"]
-[ext_resource type="Texture2D" uid="uid://bcnrprsxq0odv" path="res://Textures/Sprites/Caine.png" id="3_f5qr2"]
-[ext_resource type="Texture2D" uid="uid://dcux4ra615jmh" path="res://Textures/Sprites/Sterkur.png" id="4_i17x7"]
-[ext_resource type="Texture2D" uid="uid://cpv56wi2c3023" path="res://Textures/Sprites/Jack.png" id="5_ogkxc"]
-[ext_resource type="Texture2D" uid="uid://d148rc72cqowq" path="res://Textures/Sprites/Zeke.png" id="5_w1wd0"]
-[ext_resource type="Texture2D" uid="uid://c3luh7cpd62d7" path="res://Textures/Sprites/Logos.png" id="6_h8pgy"]
-[ext_resource type="Texture2D" uid="uid://vu5y5b3bl6ve" path="res://Textures/Sprites/Lyre.png" id="7_wpwk5"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_tyht6"]
 size = Vector3(20.512817, 1, 21.177734)
@@ -21,279 +12,170 @@ albedo_color = Color(0.047058824, 0.30980393, 0.047058824, 1)
 material = SubResource("StandardMaterial3D_aflq7")
 size = Vector3(20, 1, 20)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_5ldsp"]
-atlas = ExtResource("2_w1wd0")
-region = Rect2(0, 0, 1750, 2688)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_vybjq"]
-atlas = ExtResource("2_w1wd0")
-region = Rect2(1750, 0, 1750, 2688)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_kobjx"]
-atlas = ExtResource("2_w1wd0")
-region = Rect2(3500, 0, 1750, 2688)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_h2aga"]
-atlas = ExtResource("2_w1wd0")
-region = Rect2(5250, 0, 1750, 2688)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_ogkxc"]
-atlas = ExtResource("2_08bss")
-region = Rect2(0, 0, 1584, 2688)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_h8pgy"]
-atlas = ExtResource("2_08bss")
-region = Rect2(1584, 0, 1584, 2688)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_wpwk5"]
-atlas = ExtResource("2_08bss")
-region = Rect2(3168, 0, 1584, 2688)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_wwhan"]
-atlas = ExtResource("2_08bss")
-region = Rect2(4752, 0, 1584, 2688)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_qw478"]
-atlas = ExtResource("3_f5qr2")
-region = Rect2(0, 0, 1376, 3072)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_fv7us"]
-atlas = ExtResource("3_f5qr2")
-region = Rect2(1376, 0, 1376, 3072)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_riies"]
-atlas = ExtResource("3_f5qr2")
-region = Rect2(2752, 0, 1376, 3072)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_uioh2"]
-atlas = ExtResource("3_f5qr2")
-region = Rect2(4128, 0, 1376, 3072)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_7mjtv"]
-atlas = ExtResource("5_ogkxc")
-region = Rect2(0, 0, 1626, 3072)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_vrk8x"]
-atlas = ExtResource("5_ogkxc")
-region = Rect2(1626, 0, 1626, 3072)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_evvhs"]
-atlas = ExtResource("5_ogkxc")
-region = Rect2(3252, 0, 1626, 3072)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_3osae"]
-atlas = ExtResource("5_ogkxc")
-region = Rect2(4878, 0, 1626, 3072)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_qfjt0"]
-atlas = ExtResource("6_h8pgy")
-region = Rect2(0, 0, 1584, 2688)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_k0rgf"]
-atlas = ExtResource("6_h8pgy")
-region = Rect2(1584, 0, 1584, 2688)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_qqcjo"]
-atlas = ExtResource("6_h8pgy")
-region = Rect2(3168, 0, 1584, 2688)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_25g7c"]
-atlas = ExtResource("6_h8pgy")
-region = Rect2(4752, 0, 1584, 2688)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_ktnjn"]
-atlas = ExtResource("7_wpwk5")
-region = Rect2(0, 0, 1584, 2688)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_i75nr"]
-atlas = ExtResource("7_wpwk5")
-region = Rect2(1584, 0, 1584, 2688)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_hhvrn"]
-atlas = ExtResource("7_wpwk5")
-region = Rect2(3168, 0, 1584, 2688)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_e45ux"]
-atlas = ExtResource("7_wpwk5")
-region = Rect2(4752, 0, 1584, 2688)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_4a7vw"]
-atlas = ExtResource("4_i17x7")
-region = Rect2(0, 0, 1584, 2688)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_yqub8"]
-atlas = ExtResource("4_i17x7")
-region = Rect2(1584, 0, 1584, 2688)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_5hyal"]
-atlas = ExtResource("4_i17x7")
-region = Rect2(3168, 0, 1584, 2688)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_kqlv6"]
-atlas = ExtResource("4_i17x7")
-region = Rect2(4752, 0, 1584, 2688)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_6e55d"]
-atlas = ExtResource("5_w1wd0")
-region = Rect2(0, 0, 1376, 3072)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_sd0p2"]
-atlas = ExtResource("5_w1wd0")
-region = Rect2(1376, 0, 1376, 3072)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_15gbn"]
-atlas = ExtResource("5_w1wd0")
-region = Rect2(2752, 0, 1376, 3072)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_blfg3"]
-atlas = ExtResource("5_w1wd0")
-region = Rect2(4128, 0, 1376, 3072)
-
-[sub_resource type="SpriteFrames" id="SpriteFrames_5ldsp"]
-animations = [{
-"frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_5ldsp")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_vybjq")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_kobjx")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_h2aga")
-}],
-"loop": true,
-"name": &"Albert",
-"speed": 5.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_ogkxc")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_h8pgy")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_wpwk5")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_wwhan")
-}],
-"loop": true,
-"name": &"Alyssa",
-"speed": 5.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_qw478")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_fv7us")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_riies")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_uioh2")
-}],
-"loop": true,
-"name": &"Canin",
-"speed": 5.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_7mjtv")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_vrk8x")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_evvhs")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_3osae")
-}],
-"loop": true,
-"name": &"Jack",
-"speed": 5.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_qfjt0")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_k0rgf")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_qqcjo")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_25g7c")
-}],
-"loop": true,
-"name": &"Logos",
-"speed": 5.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_ktnjn")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_i75nr")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_hhvrn")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_e45ux")
-}],
-"loop": true,
-"name": &"Lyre",
-"speed": 5.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_4a7vw")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_yqub8")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_5hyal")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_kqlv6")
-}],
-"loop": true,
-"name": &"Ster",
-"speed": 5.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_6e55d")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_sd0p2")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_15gbn")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_blfg3")
-}],
-"loop": true,
-"name": &"Zeke",
-"speed": 5.0
-}]
-
 [node name="Node3D" type="Node3D" unique_id=36784763]
 script = ExtResource("1_tdlpj")
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=326406874]
-transform = Transform3D(1, 0, 0, 0, 0.9396927, 0.34202015, 0, -0.34202015, 0.9396927, 0, 5.8201227, 16.234592)
+transform = Transform3D(1, 0, 0, 0, 0.9396927, 0.34202015, 0, -0.34202015, 0.9396927, 0, 5.8201227, 19.18796)
 fov = 45.0
+
+[node name="CanvasLayer" type="CanvasLayer" parent="Camera3D" unique_id=1152486295]
+
+[node name="Actor0Select" type="MenuButton" parent="Camera3D/CanvasLayer" unique_id=1767759786]
+offset_left = 1023.0
+offset_top = 614.0
+offset_right = 1151.0
+offset_bottom = 645.0
+theme_override_colors/icon_normal_color = Color(0.7708395, 0.77083945, 0.77083945, 1)
+theme_override_colors/icon_focus_color = Color(0.28627452, 0.42745098, 0.28627452, 1)
+theme_override_colors/icon_pressed_color = Color(0.42352942, 0.42352942, 0.7019608, 1)
+theme_override_colors/icon_hover_color = Color(0.4410573, 0.6187438, 1, 1)
+theme_override_colors/icon_hover_pressed_color = Color(0, 0.003921569, 0.9607843, 1)
+theme_override_colors/icon_disabled_color = Color(0.15127608, 0.15127608, 0.15127608, 1)
+text = "Actor0"
+
+[node name="Actor1Select" type="MenuButton" parent="Camera3D/CanvasLayer" unique_id=448572081]
+offset_left = 1023.0
+offset_top = 582.0
+offset_right = 1151.0
+offset_bottom = 613.0
+theme_override_colors/icon_normal_color = Color(0.7708395, 0.77083945, 0.77083945, 1)
+theme_override_colors/icon_focus_color = Color(0.28627452, 0.42745098, 0.28627452, 1)
+theme_override_colors/icon_pressed_color = Color(0.42352942, 0.42352942, 0.7019608, 1)
+theme_override_colors/icon_hover_color = Color(0.4410573, 0.6187438, 1, 1)
+theme_override_colors/icon_hover_pressed_color = Color(0, 0.003921569, 0.9607843, 1)
+theme_override_colors/icon_disabled_color = Color(0.15127608, 0.15127608, 0.15127608, 1)
+text = "Actor1"
+
+[node name="Actor2Select" type="MenuButton" parent="Camera3D/CanvasLayer" unique_id=2116167558]
+offset_left = 1023.0
+offset_top = 551.0
+offset_right = 1151.0
+offset_bottom = 582.0
+theme_override_colors/icon_normal_color = Color(0.7708395, 0.77083945, 0.77083945, 1)
+theme_override_colors/icon_focus_color = Color(0.28627452, 0.42745098, 0.28627452, 1)
+theme_override_colors/icon_pressed_color = Color(0.42352942, 0.42352942, 0.7019608, 1)
+theme_override_colors/icon_hover_color = Color(0.4410573, 0.6187438, 1, 1)
+theme_override_colors/icon_hover_pressed_color = Color(0, 0.003921569, 0.9607843, 1)
+theme_override_colors/icon_disabled_color = Color(0.15127608, 0.15127608, 0.15127608, 1)
+text = "Actor2"
+
+[node name="Actor3Select" type="MenuButton" parent="Camera3D/CanvasLayer" unique_id=519989007]
+offset_left = 1023.0
+offset_top = 520.0
+offset_right = 1151.0
+offset_bottom = 551.0
+theme_override_colors/icon_normal_color = Color(0.7708395, 0.77083945, 0.77083945, 1)
+theme_override_colors/icon_focus_color = Color(0.28627452, 0.42745098, 0.28627452, 1)
+theme_override_colors/icon_pressed_color = Color(0.42352942, 0.42352942, 0.7019608, 1)
+theme_override_colors/icon_hover_color = Color(0.4410573, 0.6187438, 1, 1)
+theme_override_colors/icon_hover_pressed_color = Color(0, 0.003921569, 0.9607843, 1)
+theme_override_colors/icon_disabled_color = Color(0.15127608, 0.15127608, 0.15127608, 1)
+text = "Actor3"
+
+[node name="Action0Select" type="MenuButton" parent="Camera3D/CanvasLayer" unique_id=1928015006]
+offset_left = 890.0
+offset_top = 614.0
+offset_right = 1018.0
+offset_bottom = 645.0
+theme_override_colors/icon_normal_color = Color(0.7708395, 0.77083945, 0.77083945, 1)
+theme_override_colors/icon_focus_color = Color(0.28627452, 0.42745098, 0.28627452, 1)
+theme_override_colors/icon_pressed_color = Color(0.42352942, 0.42352942, 0.7019608, 1)
+theme_override_colors/icon_hover_color = Color(0.4410573, 0.6187438, 1, 1)
+theme_override_colors/icon_hover_pressed_color = Color(0, 0.003921569, 0.9607843, 1)
+theme_override_colors/icon_disabled_color = Color(0.15127608, 0.15127608, 0.15127608, 1)
+text = "Action0"
+
+[node name="Action1Select" type="MenuButton" parent="Camera3D/CanvasLayer" unique_id=1617637108]
+offset_left = 890.0
+offset_top = 582.0
+offset_right = 1018.0
+offset_bottom = 613.0
+theme_override_colors/icon_normal_color = Color(0.7708395, 0.77083945, 0.77083945, 1)
+theme_override_colors/icon_focus_color = Color(0.28627452, 0.42745098, 0.28627452, 1)
+theme_override_colors/icon_pressed_color = Color(0.42352942, 0.42352942, 0.7019608, 1)
+theme_override_colors/icon_hover_color = Color(0.4410573, 0.6187438, 1, 1)
+theme_override_colors/icon_hover_pressed_color = Color(0, 0.003921569, 0.9607843, 1)
+theme_override_colors/icon_disabled_color = Color(0.15127608, 0.15127608, 0.15127608, 1)
+text = "Action1"
+
+[node name="Action2Select" type="MenuButton" parent="Camera3D/CanvasLayer" unique_id=62060527]
+offset_left = 890.0
+offset_top = 551.0
+offset_right = 1018.0
+offset_bottom = 582.0
+theme_override_colors/icon_normal_color = Color(0.7708395, 0.77083945, 0.77083945, 1)
+theme_override_colors/icon_focus_color = Color(0.28627452, 0.42745098, 0.28627452, 1)
+theme_override_colors/icon_pressed_color = Color(0.42352942, 0.42352942, 0.7019608, 1)
+theme_override_colors/icon_hover_color = Color(0.4410573, 0.6187438, 1, 1)
+theme_override_colors/icon_hover_pressed_color = Color(0, 0.003921569, 0.9607843, 1)
+theme_override_colors/icon_disabled_color = Color(0.15127608, 0.15127608, 0.15127608, 1)
+text = "Action2"
+
+[node name="Action3Select" type="MenuButton" parent="Camera3D/CanvasLayer" unique_id=875551297]
+offset_left = 890.0
+offset_top = 520.0
+offset_right = 1018.0
+offset_bottom = 551.0
+theme_override_colors/icon_normal_color = Color(0.7708395, 0.77083945, 0.77083945, 1)
+theme_override_colors/icon_focus_color = Color(0.28627452, 0.42745098, 0.28627452, 1)
+theme_override_colors/icon_pressed_color = Color(0.42352942, 0.42352942, 0.7019608, 1)
+theme_override_colors/icon_hover_color = Color(0.4410573, 0.6187438, 1, 1)
+theme_override_colors/icon_hover_pressed_color = Color(0, 0.003921569, 0.9607843, 1)
+theme_override_colors/icon_disabled_color = Color(0.15127608, 0.15127608, 0.15127608, 1)
+text = "Action3"
+
+[node name="Target0Select" type="MenuButton" parent="Camera3D/CanvasLayer" unique_id=1195804703]
+offset_left = 749.0
+offset_top = 613.0
+offset_right = 877.0
+offset_bottom = 644.0
+theme_override_colors/icon_normal_color = Color(0.7708395, 0.77083945, 0.77083945, 1)
+theme_override_colors/icon_focus_color = Color(0.28627452, 0.42745098, 0.28627452, 1)
+theme_override_colors/icon_pressed_color = Color(0.42352942, 0.42352942, 0.7019608, 1)
+theme_override_colors/icon_hover_color = Color(0.4410573, 0.6187438, 1, 1)
+theme_override_colors/icon_hover_pressed_color = Color(0, 0.003921569, 0.9607843, 1)
+theme_override_colors/icon_disabled_color = Color(0.15127608, 0.15127608, 0.15127608, 1)
+text = "Target0"
+
+[node name="Target1Select" type="MenuButton" parent="Camera3D/CanvasLayer" unique_id=622023769]
+offset_left = 749.0
+offset_top = 582.0
+offset_right = 877.0
+offset_bottom = 613.0
+theme_override_colors/icon_normal_color = Color(0.7708395, 0.77083945, 0.77083945, 1)
+theme_override_colors/icon_focus_color = Color(0.28627452, 0.42745098, 0.28627452, 1)
+theme_override_colors/icon_pressed_color = Color(0.42352942, 0.42352942, 0.7019608, 1)
+theme_override_colors/icon_hover_color = Color(0.4410573, 0.6187438, 1, 1)
+theme_override_colors/icon_hover_pressed_color = Color(0, 0.003921569, 0.9607843, 1)
+theme_override_colors/icon_disabled_color = Color(0.15127608, 0.15127608, 0.15127608, 1)
+text = "Target1"
+
+[node name="Target2Select" type="MenuButton" parent="Camera3D/CanvasLayer" unique_id=222709899]
+offset_left = 749.0
+offset_top = 551.0
+offset_right = 877.0
+offset_bottom = 582.0
+theme_override_colors/icon_normal_color = Color(0.7708395, 0.77083945, 0.77083945, 1)
+theme_override_colors/icon_focus_color = Color(0.28627452, 0.42745098, 0.28627452, 1)
+theme_override_colors/icon_pressed_color = Color(0.42352942, 0.42352942, 0.7019608, 1)
+theme_override_colors/icon_hover_color = Color(0.4410573, 0.6187438, 1, 1)
+theme_override_colors/icon_hover_pressed_color = Color(0, 0.003921569, 0.9607843, 1)
+theme_override_colors/icon_disabled_color = Color(0.15127608, 0.15127608, 0.15127608, 1)
+text = "Target2"
+
+[node name="Target3Select" type="MenuButton" parent="Camera3D/CanvasLayer" unique_id=363174902]
+offset_left = 749.0
+offset_top = 520.0
+offset_right = 877.0
+offset_bottom = 551.0
+theme_override_colors/icon_normal_color = Color(0.7708395, 0.77083945, 0.77083945, 1)
+theme_override_colors/icon_focus_color = Color(0.28627452, 0.42745098, 0.28627452, 1)
+theme_override_colors/icon_pressed_color = Color(0.42352942, 0.42352942, 0.7019608, 1)
+theme_override_colors/icon_hover_color = Color(0.4410573, 0.6187438, 1, 1)
+theme_override_colors/icon_hover_pressed_color = Color(0, 0.003921569, 0.9607843, 1)
+theme_override_colors/icon_disabled_color = Color(0.15127608, 0.15127608, 0.15127608, 1)
+text = "Target3"
 
 [node name="StaticBody3D" type="StaticBody3D" parent="." unique_id=459308111]
 
@@ -307,67 +189,3 @@ mesh = SubResource("BoxMesh_geud6")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1607057870]
 transform = Transform3D(1, 0, 0, 0, 0.9238795, 0.38268346, 0, -0.38268346, 0.9238795, -0.017416, 12.425171, 16.358482)
-
-[node name="Actor_Friend1" parent="." unique_id=715952881 instance=ExtResource("1_w1wd0")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 1, 2.5)
-
-[node name="Actor_Friend2" type="StaticBody3D" parent="." unique_id=1347965880]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 1, 7)
-
-[node name="AnimatedSprite3D" type="AnimatedSprite3D" parent="Actor_Friend2" unique_id=1248314372]
-transform = Transform3D(-0.1, 0, -1.509958e-08, 0, 0.1, 0, 1.509958e-08, 0, -0.1, 0, 0.27762032, 0)
-sprite_frames = SubResource("SpriteFrames_5ldsp")
-animation = &"Alyssa"
-
-[node name="Actor_Friend3" type="StaticBody3D" parent="." unique_id=718324034]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 1, 2.5)
-
-[node name="AnimatedSprite3D" type="AnimatedSprite3D" parent="Actor_Friend3" unique_id=753006430]
-transform = Transform3D(-0.1, 0, -1.509958e-08, 0, 0.1, 0, 1.509958e-08, 0, -0.1, 0, 0.43883348, 0)
-sprite_frames = SubResource("SpriteFrames_5ldsp")
-animation = &"Zeke"
-
-[node name="Actor_Friend4" type="StaticBody3D" parent="." unique_id=2096031301]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 1, 7)
-
-[node name="AnimatedSprite3D" type="AnimatedSprite3D" parent="Actor_Friend4" unique_id=1846361125]
-transform = Transform3D(-0.1, 0, -1.509958e-08, 0, 0.1, 0, 1.509958e-08, 0, -0.1, 0, 0.2522595, 0)
-sprite_frames = SubResource("SpriteFrames_5ldsp")
-animation = &"Ster"
-frame = 1
-
-[node name="Actor_Enemy1" type="StaticBody3D" parent="." unique_id=2031944652]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 1, 7)
-
-[node name="AnimatedSprite3D" type="AnimatedSprite3D" parent="Actor_Enemy1" unique_id=1956159160]
-transform = Transform3D(0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, 0, 0.2522595, 0)
-sprite_frames = SubResource("SpriteFrames_5ldsp")
-animation = &"Lyre"
-frame = 1
-
-[node name="Actor_Enemy2" type="StaticBody3D" parent="." unique_id=208159096]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 1, 2.5)
-
-[node name="AnimatedSprite3D" type="AnimatedSprite3D" parent="Actor_Enemy2" unique_id=1054878096]
-transform = Transform3D(0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, 0, 0.2522595, 0)
-sprite_frames = SubResource("SpriteFrames_5ldsp")
-animation = &"Albert"
-frame = 1
-
-[node name="Actor_Enemy3" type="StaticBody3D" parent="." unique_id=1961388630]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 1, 2.5)
-
-[node name="AnimatedSprite3D" type="AnimatedSprite3D" parent="Actor_Enemy3" unique_id=1556116755]
-transform = Transform3D(0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, 0, 0.2522595, 0)
-sprite_frames = SubResource("SpriteFrames_5ldsp")
-animation = &"Jack"
-frame = 1
-
-[node name="Actor_Enemy4" type="StaticBody3D" parent="." unique_id=2032383087]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 1, 7)
-
-[node name="AnimatedSprite3D" type="AnimatedSprite3D" parent="Actor_Enemy4" unique_id=1755352685]
-transform = Transform3D(0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, 0, 0.2522595, 0)
-sprite_frames = SubResource("SpriteFrames_5ldsp")
-animation = &"Logos"
-frame = 1
