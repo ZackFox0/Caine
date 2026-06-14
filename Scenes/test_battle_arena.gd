@@ -12,7 +12,6 @@ const BATTLE_ACTOR_SCRIPT: Script = preload("res://Scenes/battle_actor.gd")
 # DEFAULT_CONFIG_PATH: The bundled default configuration within the project.
 # USER_CONFIG_PATH:  The writable user-specific configuration file.
 const DEFAULT_CONFIG_PATH := "res://Data/battle_actors.cfg"
-const USER_CONFIG_PATH    := "user://battle_actors.cfg"
 
 const DEFAULT_ACTION_SLOT_FALLBACKS := [
 	{"name": "Attack", "kind": "attack", "cost": 100.0, "power_scale": 1.0},
@@ -27,7 +26,6 @@ const DEFAULT_ACTION_SLOT_FALLBACKS := [
 # - position: The 3D coordinates where the actor spawns.
 # - enemy: Boolean flag indicating if this actor is an opponent (true) or ally (false).
 # - character: The key used to look up character stats/actions in the config file.
-# These slots are the "who/where" layer; stats/actions come from the config roster.
 const ARENA_SLOTS := [
 	{ "name": "Actor_Friend1", "position": Vector3( 2.5, 1.0, 2.5), "enemy": false, "character": "Caine"  },
 	{ "name": "Actor_Friend2", "position": Vector3( 2.5, 1.0, 7.0), "enemy": false, "character": "Alyssa" },
@@ -582,57 +580,14 @@ func _resolve_actor_display_name(actor_name: String, actor_node: Node) -> String
 
 # --- Configuration Loading ---
 
-# Loads the actor configuration file, copying default to user path if necessary.
-# Config precedence:
-# 1) user://battle_actors.cfg (persistent editable copy)
-# 2) res://Data/battle_actors.cfg (bundled default)
-#
-# After loading, missing keys are merged from default config so schema additions
-# do not break older user files.
+# Loads the actor configuration file from the bundled Data folder.
 func _load_cfg() -> ConfigFile:
-	# On first run copy the bundled default to user:// so it stays editable.
-	if not FileAccess.file_exists(USER_CONFIG_PATH):
-		var src := FileAccess.open(DEFAULT_CONFIG_PATH, FileAccess.READ)
-		if src != null:
-			var content := src.get_as_text()
-			src.close()
-			var dst := FileAccess.open(USER_CONFIG_PATH, FileAccess.WRITE)
-			if dst != null:
-				dst.store_string(content)
-				dst.close()
-
-	var load_path := USER_CONFIG_PATH if FileAccess.file_exists(USER_CONFIG_PATH) else DEFAULT_CONFIG_PATH
 	var cfg := ConfigFile.new()
-	var err := cfg.load(load_path)
+	var err := cfg.load(DEFAULT_CONFIG_PATH)
 	if err != OK:
-		push_error("battle_arena: failed to load config from %s (error %d)" % [load_path, err])
+		push_error("battle_arena: failed to load config from %s (error %d)" % [DEFAULT_CONFIG_PATH, err])
 		return null
-
-	var default_cfg := ConfigFile.new()
-	if default_cfg.load(DEFAULT_CONFIG_PATH) == OK:
-		if _merge_missing_default_config_values(cfg, default_cfg):
-			var save_err := cfg.save(USER_CONFIG_PATH)
-			if save_err != OK:
-				push_warning("battle_arena: failed to save merged defaults to %s (error %d)" % [USER_CONFIG_PATH, save_err])
 	return cfg
-
-
-# Merges missing section/key pairs from bundled defaults into user config.
-# Existing user values are never overwritten.
-func _merge_missing_default_config_values(user_cfg: ConfigFile, default_cfg: ConfigFile) -> bool:
-	var changed := false
-	for section in default_cfg.get_sections():
-		var existing_keys := {}
-		for key in user_cfg.get_section_keys(section):
-			existing_keys[str(key)] = true
-
-		for key in default_cfg.get_section_keys(section):
-			var key_str: String = str(key)
-			if existing_keys.has(key_str):
-				continue
-			user_cfg.set_value(section, key_str, default_cfg.get_value(section, key_str))
-			changed = true
-	return changed
 
 # Loads configuration for all actors in the arena.
 # This combines static slot placement (ARENA_SLOTS) with per-character roster data.

@@ -1,0 +1,85 @@
+[gd_scene format=3 uid="uid://dqy32tsuhv5gq"]
+
+[ext_resource type="PackedScene" uid="uid://c7s77b3x2ahpf" path="res://Terain/Models/Ground_Grade-Body.gltf" id="1_y1x7d"]
+[ext_resource type="PackedScene" uid="uid://bfiqt4tdij8m7" path="res://Terain/Models/Corner_Grade-Body.gltf" id="2_etbfo"]
+[ext_resource type="PackedScene" uid="uid://bmrhexm33itey" path="res://Terain/Models/Inside_Corner_Grade-Body.gltf" id="3_7bo3k"]
+[ext_resource type="PackedScene" uid="uid://4w6a381yvvfr" path="res://Terain/Models/Up_Grade-Body.gltf" id="4_n5kx8"]
+
+[node name="Node3D" type="Node3D" unique_id=1328463745]
+
+[node name="Ground_Grade-Body" parent="." unique_id=1639964417 instance=ExtResource("1_y1x7d")]
+
+[node name="Corner_Grade-Body" parent="." unique_id=1362895408 instance=ExtResource("2_etbfo")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1)
+
+[node name="Inside_Corner_Grade-Body" parent="." unique_id=1683317201 instance=ExtResource("3_7bo3k")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1)
+
+[node name="Up_Grade-Body" parent="." unique_id=1493016411 instance=ExtResource("4_n5kx8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
+
+[node name="Up_Grade-Body2" parent="." unique_id=1027515368 instance=ExtResource("4_n5kx8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.005, 0, 2)
+
+[node name="Ground_Grade-Body2" parent="." unique_id=433101274 instance=ExtResource("1_y1x7d")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -1, 2)
+
+[node name="Ground_Grade-Body3" parent="." unique_id=1850271843 instance=ExtResource("1_y1x7d")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -1, 1)
+
+[node name="Ground_Grade-Body4" parent="." unique_id=1592177365 instance=ExtResource("1_y1x7d")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -1, 0)
+
+[node name="Ground_Grade-Body5" parent="." unique_id=1404938289 instance=ExtResource("1_y1x7d")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, -1, 2)
+
+[node name="Ground_Grade-Body6" parent="." unique_id=943160758 instance=ExtResource("1_y1x7d")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -1, 3)
+
+[node name="Ground_Grade-Body7" parent="." unique_id=619162954 instance=ExtResource("1_y1x7d")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -1, 4)
+
+[node name="Inside_Corner_Grade-Body2" parent="." unique_id=997097363 instance=ExtResource("3_7bo3k")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 1, 0, 3)
+
+[node name="Corner_Grade-Body2" parent="." unique_id=252198287 instance=ExtResource("2_etbfo")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 2, 0, 3)
+
+[node name="Up_Grade-Body3" parent="." unique_id=1765226890 instance=ExtResource("4_n5kx8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 4)
+
+[node name="Ground_Grade-Body8" parent="." unique_id=1374063658 instance=ExtResource("1_y1x7d")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 4)
+
+[node name="Ground_Grade-Body9" parent="." unique_id=292166421 instance=ExtResource("1_y1x7d")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 0)
+
+[node name="Ground_Grade-Body10" parent="." unique_id=460994142 instance=ExtResource("1_y1x7d")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 1)
+
+[node name="Ground_Grade-Body11" parent="." unique_id=887895988 instance=ExtResource("1_y1x7d")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 2)
+
+[node name="Ground_Grade-Body12" parent="." unique_id=1711677658 instance=ExtResource("1_y1x7d")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 3)
+
+[node name="Ground_Grade-Body13" parent="." unique_id=141133356 instance=ExtResource("1_y1x7d")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 4)
+
+[node name="Ground_Grade-Body14" parent="." unique_id=1870993687 instance=ExtResource("1_y1x7d")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 5)
+
+[node name="Ground_Grade-Body15" parent="." unique_id=204557267 instance=ExtResource("1_y1x7d")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 5)
+
+[node name="Ground_Grade-Body16" parent="." unique_id=1526089942 instance=ExtResource("1_y1x7d")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 5)
+
+[node name="Ground_Grade-Body17" parent="." unique_id=1974565169 instance=ExtResource("1_y1x7d")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 5)
+
+[node name="Inside_Corner_Grade-Body3" parent="." unique_id=1594610823 instance=ExtResource("3_7bo3k")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 4, 0, 3)
+
+[node name="Ground_Grade-Body18" parent="." unique_id=1901793579 instance=ExtResource("1_y1x7d")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 5)
