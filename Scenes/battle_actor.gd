@@ -3,7 +3,7 @@ extends StaticBody3D
 signal damaged(amount: int, source: Node, remaining_health: int)
 signal attacked(target: Node, damage_dealt: int)
 signal defeated(source: Node)
-signal action_used(action_slot: int, action_name: String, target: Node, damage_dealt: int)
+signal action_used(action_slot: int, action_name: String, target: Node, damage_dealt: int, healer: Node)
 
 enum ActionSlot {
 	ATTACK,
@@ -19,6 +19,7 @@ const ACTION_EMPTY := "Empty"
 
 const ACTION_KIND_ATTACK := "attack"
 const ACTION_KIND_EMPTY := "empty"
+const ACTION_KIND_HEAL := "heal"
 
 const DEFAULT_ACTION_SLOTS := [
 	{"name": ACTION_ATTACK, "kind": ACTION_KIND_ATTACK, "cost": 100.0, "power_scale": 1.0},
@@ -115,8 +116,19 @@ func perform_action(action_slot: int, target: Node = null) -> int:
 
 	if action_kind == ACTION_KIND_EMPTY:
 		_consume_action_points(action_cost)
-		emit_signal("action_used", action_slot, action_name, null, 0)
+		emit_signal("action_used", action_slot, action_name, null, 0, null)
 		return 0
+
+	# Healing action: heal the target (ally or self)
+	if action_kind == ACTION_KIND_HEAL:
+		if target == null:
+			return 0
+		var power_scale: float = max(0.0, float(action_data.get("power_scale", 1.0)))
+		var heal_amount: int = max(1, int(round(attack_power * power_scale)))
+		var actual_heal: int = target.call("take_healing", heal_amount, self)
+		_consume_action_points(action_cost)
+		emit_signal("action_used", action_slot, action_name, target, actual_heal, self)
+		return actual_heal
 
 	if target == null or not target.has_method("take_damage"):
 		return 0
@@ -128,7 +140,7 @@ func perform_action(action_slot: int, target: Node = null) -> int:
 
 	var dealt_damage: int = _deal_damage_to_target(target, raw_damage, action_cost)
 	emit_signal("attacked", target, dealt_damage)
-	emit_signal("action_used", action_slot, action_name, target, dealt_damage)
+	emit_signal("action_used", action_slot, action_name, target, dealt_damage, null)
 	return dealt_damage
 
 
@@ -158,6 +170,17 @@ func take_damage(raw_damage: int, source: Node = null) -> int:
 		emit_signal("defeated", source)
 
 	return mitigated_damage
+
+
+func take_healing(heal_amount: int, healer: Node = null) -> int:
+	if not is_alive():
+		return 0
+
+	var initial_health: int = health
+	health = min(max_health, health + heal_amount)
+	var actual_heal: int = health - initial_health
+	_sync_health_bar()
+	return actual_heal
 
 
 func can_attack() -> bool:

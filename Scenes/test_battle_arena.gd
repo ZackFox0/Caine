@@ -263,16 +263,35 @@ func _show_action_buttons_for_actor(actor_name: String) -> void:
 
 # Displays target buttons for a selected actor, populated from opponent actors.
 # Prioritizes alive opponents; falls back to team list when everyone is defeated.
+# If the selected action is a heal kind, shows alive allies as targets instead.
 func _show_target_buttons_for_actor(actor_name: String) -> void:
-	var opponent_names: Array = _get_opponent_targets_for_actor(actor_name)
+	var action_data_list: Array = _get_action_data_list_for_actor(actor_name)
+	var action_kind: String = ""
+	if selected_action_slot >= 0 and selected_action_slot < action_data_list.size():
+		var slot_data: Dictionary = action_data_list[selected_action_slot]
+		if slot_data is Dictionary:
+			action_kind = str(slot_data.get("kind", "attack")).strip_edges().to_lower()
+
+	var target_names: Array = []
+	if action_kind == "heal":
+		target_names = _get_alive_actor_names(false)
+		if target_names.is_empty():
+			target_names = _get_actor_names_by_team(false)
+	else:
+		target_names = _get_opponent_targets_for_actor(actor_name)
+		if not target_names.is_empty():
+			pass
+		else:
+			target_names = _get_actor_names_by_team(true)
+
 	for button_index in range(4):
 		var button: MenuButton = target_select_buttons[button_index]
 		if button == null:
 			continue
 
 		var target_name: String = ""
-		if button_index < opponent_names.size():
-			target_name = str(opponent_names[button_index])
+		if button_index < target_names.size():
+			target_name = str(target_names[button_index])
 
 		target_button_target_names[button_index] = target_name
 		button.visible = not target_name.is_empty()
@@ -518,7 +537,16 @@ func _execute_action(actor_name: String, action_slot: int, target_name: String) 
 
 	var target_health: int = int(target_node.get("health"))
 	var target_max_health: int = int(target_node.get("max_health"))
-	print("%s uses %s on %s for %d damage. HP %d/%d" % [actor_label, action_name, target_label, damage, target_health, target_max_health])
+	var action_data_list: Array = _get_action_data_list_for_actor(actor_name)
+	var action_kind: String = ""
+	if selected_action_slot >= 0 and selected_action_slot < action_data_list.size():
+		var slot_data: Dictionary = action_data_list[selected_action_slot]
+		if slot_data is Dictionary:
+			action_kind = str(slot_data.get("kind", "attack")).strip_edges().to_lower()
+	if action_kind == "heal":
+		print("%s uses %s on %s heals %d HP. HP %d/%d" % [actor_label, action_name, target_label, damage, target_health, target_max_health])
+	else:
+		print("%s uses %s on %s for %d damage. HP %d/%d" % [actor_label, action_name, target_label, damage, target_health, target_max_health])
 
 
 # --- Helper Functions ---
@@ -760,6 +788,22 @@ func _prepare_actor(actor: Node, max_hp: int, actor_attack: int, actor_defense: 
 	if actor.has_method("set"):
 		actor.set("speed", max(0.0, actor_speed))
 
+
+# --- Helper: Action Data ---
+
+# Retrieves the action data list (slots) for a given actor.
+# Queries the actor node directly if it exposes get_action_data_list(), 
+# otherwise falls back to the internal default action configuration.
+func _get_action_data_list_for_actor(actor_name: String) -> Array:
+	var actor_node: Node = _get_actor_by_name(actor_name)
+	if actor_node != null and actor_node.has_method("get_action_data_list"):
+		return Array(actor_node.call("get_action_data_list"))
+	return [
+		{"name": "Attack",       "kind": "attack"},
+		{"name": "Heavy Attack", "kind": "attack"},
+		{"name": "Special",      "kind": "attack"},
+		{"name": "Empty",        "kind": "empty"},
+	]
 
 # --- Quick Test Function ---
 
