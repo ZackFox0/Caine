@@ -1,3 +1,5 @@
+class_name BattleActor
+
 extends StaticBody3D
 
 signal damaged(amount: int, source: Node, remaining_health: int)
@@ -20,6 +22,7 @@ const ACTION_EMPTY := "Empty"
 const ACTION_KIND_ATTACK := "attack"
 const ACTION_KIND_EMPTY := "empty"
 const ACTION_KIND_HEAL := "heal"
+const ACTION_KIND_DRAIN_HEAL := "drain_heal"
 
 const DEFAULT_ACTION_SLOTS := [
 	{"name": ACTION_ATTACK, "kind": ACTION_KIND_ATTACK, "cost": 100.0, "power_scale": 1.0},
@@ -30,7 +33,7 @@ const DEFAULT_ACTION_SLOTS := [
 
 @export var max_health: int = 100
 @export var action_threshold: float = 100.0
-@export var spark: int = 1
+@export var spark: int = 13000000
 @export var attack_power: int = 20
 @export var heavy_attack_multiplier: float = 1.6
 @export var special_attack_multiplier: float = 2.0
@@ -56,9 +59,17 @@ func _ready() -> void:
 	_sync_action_bar()
 
 
+# Global flag set by the battle arena to pause all action bar filling.
+# When true, no actor gains action points (gives player time to react).
+static var battle_paused: bool = false
+
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
 	if not is_alive():
+		return
+
+	# If the battle is paused (ally action bar is full), skip gaining action points
+	if battle_paused:
 		return
 
 	var gain_amount: float = max(0.0, speed) * delta
@@ -130,6 +141,19 @@ func perform_action(action_slot: int, target: Node = null) -> int:
 		emit_signal("action_used", action_slot, action_name, target, actual_heal, self)
 		return actual_heal
 
+	# Drain and heal action: drain health from enemy, heal all allies
+	if action_kind == ACTION_KIND_DRAIN_HEAL:
+		if target == null:
+			return 0
+		var power_scale: float = max(0.0, float(action_data.get("power_scale", 1.0)))
+		var drain_amount: int = max(1, int(round(attack_power * power_scale)))
+		var actual_drained: int = target.call("take_drain_healing", drain_amount, self)
+		_consume_action_points(action_cost)
+		# Distribute drained health to all allied BattleActors
+		_distribute_drained_health(actual_drained, self)
+		emit_signal("action_used", action_slot, action_name, target, actual_drained, self)
+		return actual_drained
+
 	if target == null or not target.has_method("take_damage"):
 		return 0
 
@@ -181,6 +205,18 @@ func take_healing(heal_amount: int, healer: Node = null) -> int:
 	var actual_heal: int = health - initial_health
 	_sync_health_bar()
 	return actual_heal
+
+
+func take_drain_healing(drain_amount: int, healer: Node = null) -> int:
+	"""Called by drain_heal actions. Drains health from self and returns the amount drained.
+	The healer node will then distribute this health to its allies."""
+	if not is_alive() or drain_amount <= 0:
+		return 0
+
+	var drained: int = min(health, drain_amount)
+	health = max(0, health - drained)
+	_sync_health_bar()
+	return drained
 
 
 func can_attack() -> bool:
@@ -269,3 +305,58 @@ func _sync_health_bar() -> void:
 
 	health_bar.max_value = max_health
 	health_bar.value = health
+
+
+func _distribute_drained_health(total_drained: int, healer: Node) -> void:
+	"""Distribute drained health equally among all alive allied BattleActors."""
+	if total_drained <= 0:
+		return
+	if not healer or not healer.has_method("is_alive"):
+		return
+
+	# Find the parent battle arena to query allies
+	var battle_arena: Node = _find_battle_arena_parent(healer)
+	if battle_arena == null or not battle_arena.has_method("_get_alive_actor_names"):
+		return
+
+	# Get all alive ally actor names (excluding the enemy who was drained)
+	var ally_names: Array = battle_arena.call("_get_alive_actor_names", false)
+	if ally_names.is_empty():
+		return
+
+	# Calculate health per ally (integer division, distribute remainder)
+	var per_ally: int = total_drained / ally_names.size()
+	var remainder: int = total_drained - (per_ally * ally_names.size())
+
+	for i in range(ally_names.size()):
+		var ally_name: String = ally_names[i]
+		var ally_node: Node = battle_arena.call("_get_actor_by_name", ally_name)
+		if ally_node == null or not ally_node.has_method("is_alive") or not ally_node.call("is_alive"):
+			continue
+
+		var heal_amount: int = per_ally
+		if remainder > 0:
+			heal_amount += 1
+			remainder -= 1
+
+		ally_node.call("take_healing", heal_amount, healer)
+	
+	var healer_label: String = "Unknown"
+	if healer.has_method("get_action_names"):
+		if healer.get("label") != null:
+			healer_label = str(healer.get("label"))
+		else:
+			var label_node: Label3D = healer.get_node_or_null("Label3D")
+			if label_node != null:
+				healer_label = label_node.text
+	print("%s uses Shaired Pain: drained %d HP, distributed to %d allies." % [healer_label, total_drained, ally_names.size()])
+
+
+func _find_battle_arena_parent(node: Node) -> Node:
+	"""Walk up the tree to find the battle arena (test_battle_arena.gd script)."""
+	var current: Node = node.get_parent()
+	while current != null:
+		if current.get_script() != null and current.get_script().get_path().contains("test_battle_arena"):
+			return current
+		current = current.get_parent()
+	return null

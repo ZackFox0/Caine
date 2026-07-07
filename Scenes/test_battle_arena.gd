@@ -4,9 +4,8 @@ extends Node3D
 # In short: it spawns actors from config, lets the player pick actor -> action -> target,
 # then delegates damage logic to each actor's script.
 
-# Preload the Battle Actor scene and script for instantiation and validation.
+# Preload the Battle Actor scene and reference the class for static variable access.
 const BATTLE_ACTOR_SCENE: PackedScene = preload("res://Scenes/Battle_Actor.tscn")
-const BATTLE_ACTOR_SCRIPT: Script = preload("res://Scenes/battle_actor.gd")
 
 # Paths for actor configuration files.
 # DEFAULT_CONFIG_PATH: The bundled default configuration within the project.
@@ -64,6 +63,13 @@ var target_button_target_names: Array = ["", "", "", ""]
 
 var navigation_cursor: int = 0
 
+# Battle pause state: when true, all action bars stop filling.
+var battle_paused: bool = false
+
+# Track which ally indices currently have a full bar to detect transitions.
+# Uses the index within ARENA_SLOTS for each ally.
+var ally_full_indices: Array[int] = []
+
 
 # --- Initialization ---
 
@@ -79,7 +85,31 @@ func _ready() -> void:
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
-	pass
+	_check_ally_full_bar_and_pause()
+
+
+# --- Battle Pause Logic ---
+
+# Checks if any ally's action bar just reached 100% and pauses battle if so.
+func _check_ally_full_bar_and_pause() -> void:
+	var current_full_indices: Array[int] = []
+	for i in range(ARENA_SLOTS.size()):
+		var slot: Dictionary = ARENA_SLOTS[i]
+		if bool(slot.get("enemy", false)):
+			continue
+		var actor_name: String = str(slot.get("name", ""))
+		var actor_node: Node = _get_actor_by_name(actor_name)
+		if actor_node == null or not actor_node.has_method("is_alive") or not actor_node.call("is_alive"):
+			continue
+		# An ally is "full" if their action bar reached 100%
+		if actor_node.has_method("get_action_percent") and actor_node.call("get_action_percent") >= 100.0:
+			current_full_indices.append(i)
+	
+	# Detect transition: if any ally just reached 100% and wasn't before, pause
+	if _array_has_new_element(current_full_indices, ally_full_indices):
+		battle_paused = true
+		BattleActor.battle_paused = true
+		ally_full_indices = current_full_indices
 
 # Handles keyboard battle menu navigation.
 # Navigation keys: Up/Down and W/S/A/D.
@@ -273,7 +303,7 @@ func _show_target_buttons_for_actor(actor_name: String) -> void:
 			action_kind = str(slot_data.get("kind", "attack")).strip_edges().to_lower()
 
 	var target_names: Array = []
-	if action_kind == "heal":
+	if action_kind == "heal" or action_kind == "drain_heal":
 		target_names = _get_alive_actor_names(false)
 		if target_names.is_empty():
 			target_names = _get_actor_names_by_team(false)
@@ -361,6 +391,26 @@ func _on_target_button_pressed(button_index: int) -> void:
 
 	_execute_action(selected_actor_name, selected_action_slot, target_name)
 	_refresh_selection_flow()
+	_unpause_battle()
+
+
+# --- Battle Pause Control ---
+
+# Resumes action bar filling after the player's action has been executed.
+func _unpause_battle() -> void:
+	battle_paused = false
+	BattleActor.battle_paused = false
+	ally_full_indices.clear()
+
+
+# --- Battle Pause Helpers ---
+
+# Returns true if `new_arr` contains an element not in `old_arr`.
+func _array_has_new_element(new_arr: Array[int], old_arr: Array[int]) -> bool:
+	for idx in new_arr:
+		if not old_arr.has(idx):
+			return true
+	return false
 
 
 func _move_navigation_cursor(direction: int) -> void:
@@ -545,6 +595,8 @@ func _execute_action(actor_name: String, action_slot: int, target_name: String) 
 			action_kind = str(slot_data.get("kind", "attack")).strip_edges().to_lower()
 	if action_kind == "heal":
 		print("%s uses %s on %s heals %d HP. HP %d/%d" % [actor_label, action_name, target_label, damage, target_health, target_max_health])
+	elif action_kind == "drain_heal":
+		print("%s uses %s on %s: drains %d HP to heal allies. HP %d/%d" % [actor_label, action_name, target_label, damage, target_health, target_max_health])
 	else:
 		print("%s uses %s on %s for %d damage. HP %d/%d" % [actor_label, action_name, target_label, damage, target_health, target_max_health])
 
@@ -776,8 +828,9 @@ func _prepare_actor(actor: Node, max_hp: int, actor_attack: int, actor_defense: 
 	if actor == null:
 		return
 
-	if actor.get_script() != BATTLE_ACTOR_SCRIPT:
-		actor.set_script(BATTLE_ACTOR_SCRIPT)
+	var actor_script_path: String = BATTLE_ACTOR_SCENE.resource_path.get_base_dir() + "/battle_actor.gd"
+	if actor.get_script() == null or actor.get_script().resource_path != actor_script_path:
+		actor.set_script(load(actor_script_path))
 
 	if actor.has_method("configure_for_battle"):
 		actor.call("configure_for_battle", max_hp, actor_attack, actor_defense)
