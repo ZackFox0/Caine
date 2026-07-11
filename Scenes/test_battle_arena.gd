@@ -70,9 +70,11 @@ var battle_paused: bool = false
 var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var enemy_ai_cooldown_remaining: float = 0.0
 
-# Track which ally indices currently have a full bar to detect transitions.
-# Uses the index within ARENA_SLOTS for each ally.
-var ally_full_indices: Array[int] = []
+@export var randomize_field_positions: bool = true
+@export var assign_team_from_position: bool = true
+
+# Track which ally actors currently have a full bar to detect transitions.
+var ally_full_actor_names: Array[String] = []
 
 
 # --- Initialization ---
@@ -84,8 +86,26 @@ func _ready() -> void:
 	rng.randomize()
 	_spawn_arena_actors()       # Create actor instances based on config.
 	_cache_arena_actor_nodes()  # Build lookup dictionaries for fast access.
+	_debug_print_field_layout()
 	_bind_selection_buttons()   # Connect UI signals and setup menus.
 	_refresh_selection_flow()   # Initialize the UI state to a clean slate.
+
+
+func _debug_print_field_layout() -> void:
+	var layout_parts: Array[String] = []
+	for slot in ARENA_SLOTS:
+		var actor_name: String = str(slot.get("name", ""))
+		if actor_name.is_empty():
+			continue
+		var actor_node: Node3D = _get_actor_by_name(actor_name) as Node3D
+		if actor_node == null:
+			continue
+		var is_enemy: bool = bool(actor_is_enemy_by_name.get(actor_name, bool(slot.get("enemy", false))))
+		var team_label: String = "Enemy" if is_enemy else "Player"
+		var display_name: String = _get_actor_display_name(actor_name)
+		layout_parts.append("%s:%s@%s" % [team_label, display_name, actor_node.position])
+
+	print("Field Layout => %s" % " | ".join(layout_parts))
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
@@ -98,24 +118,20 @@ func _process(delta: float) -> void:
 
 # Checks if any ally's action bar just reached 100% and pauses battle if so.
 func _check_ally_full_bar_and_pause() -> void:
-	var current_full_indices: Array[int] = []
-	for i in range(ARENA_SLOTS.size()):
-		var slot: Dictionary = ARENA_SLOTS[i]
-		if bool(slot.get("enemy", false)):
-			continue
-		var actor_name: String = str(slot.get("name", ""))
+	var current_full_actor_names: Array[String] = []
+	for actor_name in _get_alive_actor_names(false):
 		var actor_node: Node = _get_actor_by_name(actor_name)
 		if actor_node == null or not actor_node.has_method("is_alive") or not actor_node.call("is_alive"):
 			continue
 		# An ally is "full" if their action bar reached 100%
 		if actor_node.has_method("get_action_percent") and actor_node.call("get_action_percent") >= 100.0:
-			current_full_indices.append(i)
+			current_full_actor_names.append(actor_name)
 	
 	# Detect transition: if any ally just reached 100% and wasn't before, pause
-	if _array_has_new_element(current_full_indices, ally_full_indices):
+	if _array_has_new_element(current_full_actor_names, ally_full_actor_names):
 		battle_paused = true
 		BattleActor.battle_paused = true
-		ally_full_indices = current_full_indices
+		ally_full_actor_names = current_full_actor_names
 
 # Handles keyboard battle menu navigation.
 # Navigation keys: Up/Down and W/S/A/D.
@@ -158,7 +174,10 @@ func _cache_arena_actor_nodes() -> void:
 		if actor_node == null:
 			continue
 		actor_nodes_by_name[actor_name] = actor_node
-		actor_is_enemy_by_name[actor_name] = bool(slot.get("enemy", false))
+		if actor_node.has_meta("is_enemy"):
+			actor_is_enemy_by_name[actor_name] = bool(actor_node.get_meta("is_enemy"))
+		else:
+			actor_is_enemy_by_name[actor_name] = bool(slot.get("enemy", false))
 		actor_display_names_by_name[actor_name] = _resolve_actor_display_name(actor_name, actor_node)
 
 # Connects UI MenuButtons to their respective selection handlers.
@@ -302,6 +321,7 @@ func _show_action_buttons_for_actor(actor_name: String) -> void:
 # If the selected action is a heal kind, shows alive allies as targets instead.
 func _show_target_buttons_for_actor(actor_name: String) -> void:
 	var action_data_list: Array = _get_action_data_list_for_actor(actor_name)
+	var actor_is_enemy: bool = bool(actor_is_enemy_by_name.get(actor_name, false))
 	var action_kind: String = ""
 	if selected_action_slot >= 0 and selected_action_slot < action_data_list.size():
 		var slot_data: Dictionary = action_data_list[selected_action_slot]
@@ -310,15 +330,15 @@ func _show_target_buttons_for_actor(actor_name: String) -> void:
 
 	var target_names: Array = []
 	if action_kind == "heal" or action_kind == "drain_heal":
-		target_names = _get_alive_actor_names(false)
+		target_names = _get_alive_actor_names(actor_is_enemy)
 		if target_names.is_empty():
-			target_names = _get_actor_names_by_team(false)
+			target_names = _get_actor_names_by_team(actor_is_enemy)
 	else:
 		target_names = _get_opponent_targets_for_actor(actor_name)
 		if not target_names.is_empty():
 			pass
 		else:
-			target_names = _get_actor_names_by_team(true)
+			target_names = _get_actor_names_by_team(not actor_is_enemy)
 
 	for button_index in range(4):
 		var button: MenuButton = target_select_buttons[button_index]
@@ -406,13 +426,13 @@ func _on_target_button_pressed(button_index: int) -> void:
 func _unpause_battle() -> void:
 	battle_paused = false
 	BattleActor.battle_paused = false
-	ally_full_indices.clear()
+	ally_full_actor_names.clear()
 
 
 # --- Battle Pause Helpers ---
 
 # Returns true if `new_arr` contains an element not in `old_arr`.
-func _array_has_new_element(new_arr: Array[int], old_arr: Array[int]) -> bool:
+func _array_has_new_element(new_arr: Array[String], old_arr: Array[String]) -> bool:
 	for idx in new_arr:
 		if not old_arr.has(idx):
 			return true
@@ -630,6 +650,7 @@ func _run_enemy_ai_turn() -> void:
 		return
 
 	_execute_action(enemy_name, action_slot, target_name)
+	_refresh_selection_flow()
 	enemy_ai_cooldown_remaining = ENEMY_AI_TURN_COOLDOWN
 
 
@@ -712,12 +733,10 @@ func _pick_random_target_for_action(actor_name: String, action_slot: int) -> Str
 # Gets all actor names for a specific team (ally or enemy).
 func _get_actor_names_by_team(is_enemy: bool) -> Array:
 	var actor_names: Array = []
-	for slot in ARENA_SLOTS:
-		if bool(slot.get("enemy", false)) != is_enemy:
+	for actor_name in actor_nodes_by_name.keys():
+		if bool(actor_is_enemy_by_name.get(actor_name, false)) != is_enemy:
 			continue
-		var actor_name: String = str(slot.get("name", ""))
-		if not actor_name.is_empty() and actor_nodes_by_name.has(actor_name):
-			actor_names.append(actor_name)
+		actor_names.append(str(actor_name))
 	return actor_names
 
 # Gets all alive actor names for a specific team.
@@ -797,7 +816,33 @@ func _load_actor_configs() -> Array:
 			"speed":     char_data.get("speed", 10.0),
 			"actions":   char_data.get("actions", []),
 		})
+
+	if randomize_field_positions:
+		_shuffle_actor_positions(configs)
 	return configs
+
+
+func _shuffle_actor_positions(configs: Array) -> void:
+	if configs.size() <= 1:
+		return
+
+	var positions: Array = []
+	for config in configs:
+		positions.append(config.get("position", Vector3.ZERO))
+
+	# Fisher-Yates shuffle so any actor can spawn in any field slot.
+	for i in range(positions.size() - 1, 0, -1):
+		var swap_index: int = rng.randi_range(0, i)
+		var temp_position: Vector3 = positions[i]
+		positions[i] = positions[swap_index]
+		positions[swap_index] = temp_position
+
+	for i in range(configs.size()):
+		var config: Dictionary = configs[i]
+		config["position"] = positions[i]
+		if assign_team_from_position:
+			config["enemy"] = float(config["position"].x) < 0.0
+		configs[i] = config
 
 # Loads the roster from the configuration file.
 # Expected section shape:
@@ -894,6 +939,7 @@ func _spawn_actor_from_template(config: Dictionary) -> void:
 	var actor_node: Node3D = actor_instance as Node3D
 	actor_node.name = actor_name
 	actor_node.position = config.get("position", Vector3.ZERO)
+	actor_node.set_meta("is_enemy", bool(config.get("enemy", false)))
 	add_child(actor_node)
 
 	_configure_actor_visuals(actor_node, config)
