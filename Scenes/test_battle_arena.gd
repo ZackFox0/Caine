@@ -19,6 +19,8 @@ const DEFAULT_ACTION_SLOT_FALLBACKS := [
 	{"name": "Empty", "kind": "empty", "cost": 100.0, "power_scale": 0.0},
 ]
 
+const ENEMY_AI_TURN_COOLDOWN: float = 0.3
+
 # Arena Slot Configuration.
 # Defines the initial state of each actor in the battle arena.
 # - name: The unique Node name assigned to the actor instance.
@@ -65,6 +67,8 @@ var navigation_cursor: int = 0
 
 # Battle pause state: when true, all action bars stop filling.
 var battle_paused: bool = false
+var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+var enemy_ai_cooldown_remaining: float = 0.0
 
 # Track which ally indices currently have a full bar to detect transitions.
 # Uses the index within ARENA_SLOTS for each ally.
@@ -77,15 +81,17 @@ var ally_full_indices: Array[int] = []
 # Sets up the arena by spawning actors, caching data, and binding UI.
 # The order here matters: spawn first so cache/bind logic can find valid nodes.
 func _ready() -> void:
+	rng.randomize()
 	_spawn_arena_actors()       # Create actor instances based on config.
 	_cache_arena_actor_nodes()  # Build lookup dictionaries for fast access.
 	_bind_selection_buttons()   # Connect UI signals and setup menus.
 	_refresh_selection_flow()   # Initialize the UI state to a clean slate.
 
-
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
+	enemy_ai_cooldown_remaining = max(0.0, enemy_ai_cooldown_remaining - delta)
 	_check_ally_full_bar_and_pause()
+	_run_enemy_ai_turn()
 
 
 # --- Battle Pause Logic ---
@@ -589,8 +595,8 @@ func _execute_action(actor_name: String, action_slot: int, target_name: String) 
 	var target_max_health: int = int(target_node.get("max_health"))
 	var action_data_list: Array = _get_action_data_list_for_actor(actor_name)
 	var action_kind: String = ""
-	if selected_action_slot >= 0 and selected_action_slot < action_data_list.size():
-		var slot_data: Dictionary = action_data_list[selected_action_slot]
+	if action_slot >= 0 and action_slot < action_data_list.size():
+		var slot_data: Dictionary = action_data_list[action_slot]
 		if slot_data is Dictionary:
 			action_kind = str(slot_data.get("kind", "attack")).strip_edges().to_lower()
 	if action_kind == "heal":
@@ -599,6 +605,106 @@ func _execute_action(actor_name: String, action_slot: int, target_name: String) 
 		print("%s uses %s on %s: drains %d HP to heal allies. HP %d/%d" % [actor_label, action_name, target_label, damage, target_health, target_max_health])
 	else:
 		print("%s uses %s on %s for %d damage. HP %d/%d" % [actor_label, action_name, target_label, damage, target_health, target_max_health])
+
+
+# --- Basic Enemy AI ---
+
+# Runs one enemy turn when not paused and an enemy action bar is full.
+func _run_enemy_ai_turn() -> void:
+	if battle_paused:
+		return
+	if enemy_ai_cooldown_remaining > 0.0:
+		return
+
+	var ready_enemies: Array = _get_ready_enemy_names()
+	if ready_enemies.is_empty():
+		return
+
+	var enemy_name: String = str(ready_enemies[rng.randi_range(0, ready_enemies.size() - 1)])
+	var action_slot: int = _pick_random_usable_action_slot(enemy_name)
+	if action_slot < 0:
+		return
+
+	var target_name: String = _pick_random_target_for_action(enemy_name, action_slot)
+	if target_name.is_empty():
+		return
+
+	_execute_action(enemy_name, action_slot, target_name)
+	enemy_ai_cooldown_remaining = ENEMY_AI_TURN_COOLDOWN
+
+
+func _get_ready_enemy_names() -> Array:
+	var ready_enemy_names: Array = []
+	for enemy_name in _get_alive_actor_names(true):
+		var enemy_node: Node = _get_actor_by_name(str(enemy_name))
+		if enemy_node == null:
+			continue
+		if not enemy_node.has_method("get_action_percent"):
+			continue
+		if float(enemy_node.call("get_action_percent")) < 100.0:
+			continue
+		if _pick_random_usable_action_slot(str(enemy_name)) < 0:
+			continue
+		ready_enemy_names.append(str(enemy_name))
+	return ready_enemy_names
+
+
+func _pick_random_usable_action_slot(actor_name: String) -> int:
+	var actor_node: Node = _get_actor_by_name(actor_name)
+	if actor_node == null:
+		return -1
+
+	var action_data_list: Array = _get_action_data_list_for_actor(actor_name)
+	var usable_slots: Array[int] = []
+	for slot_index in range(action_data_list.size()):
+		var slot_data: Dictionary = action_data_list[slot_index]
+		if not (slot_data is Dictionary):
+			continue
+
+		var action_kind: String = str(slot_data.get("kind", "attack")).strip_edges().to_lower()
+		if action_kind == "empty":
+			continue
+
+		if actor_node.has_method("can_use_action") and not actor_node.call("can_use_action", slot_index):
+			continue
+
+		usable_slots.append(slot_index)
+
+	if usable_slots.is_empty():
+		return -1
+
+	return usable_slots[rng.randi_range(0, usable_slots.size() - 1)]
+
+
+func _pick_random_target_for_action(actor_name: String, action_slot: int) -> String:
+	if actor_name.is_empty() or action_slot < 0:
+		return ""
+
+	var is_enemy: bool = bool(actor_is_enemy_by_name.get(actor_name, false))
+	var action_data_list: Array = _get_action_data_list_for_actor(actor_name)
+	if action_slot >= action_data_list.size():
+		return ""
+
+	var slot_data: Dictionary = action_data_list[action_slot]
+	if not (slot_data is Dictionary):
+		return ""
+
+	var action_kind: String = str(slot_data.get("kind", "attack")).strip_edges().to_lower()
+	var target_names: Array = []
+
+	if action_kind == "heal":
+		target_names = _get_alive_actor_names(is_enemy)
+		if target_names.is_empty():
+			target_names = _get_actor_names_by_team(is_enemy)
+	else:
+		target_names = _get_alive_actor_names(not is_enemy)
+		if target_names.is_empty():
+			target_names = _get_actor_names_by_team(not is_enemy)
+
+	if target_names.is_empty():
+		return ""
+
+	return str(target_names[rng.randi_range(0, target_names.size() - 1)])
 
 
 # --- Helper Functions ---
@@ -765,7 +871,8 @@ func _load_shared_action_slots(cfg: ConfigFile) -> Array:
 # Spawns all actors in the arena based on the configuration.
 # Uses loaded templates so changes in config reflect immediately on next run.
 func _spawn_arena_actors() -> void:
-	for config in _load_actor_configs():
+	var configs = _load_actor_configs()
+	for config in configs:
 		_spawn_actor_from_template(config)
 
 # Spawns a single actor from a configuration template.
@@ -838,8 +945,10 @@ func _prepare_actor(actor: Node, max_hp: int, actor_attack: int, actor_defense: 
 	if actor.has_method("configure_actions"):
 		actor.call("configure_actions", actor_actions)
 
-	if actor.has_method("set"):
-		actor.set("speed", max(0.0, actor_speed))
+	# Set the speed property if the actor is a BattleActor
+	var ba = actor as BattleActor
+	if ba != null:
+		ba.speed = max(0.0, actor_speed)
 
 
 # --- Helper: Action Data ---

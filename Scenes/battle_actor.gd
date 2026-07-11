@@ -134,8 +134,8 @@ func perform_action(action_slot: int, target: Node = null) -> int:
 	if action_kind == ACTION_KIND_HEAL:
 		if target == null:
 			return 0
-		var power_scale: float = max(0.0, float(action_data.get("power_scale", 1.0)))
-		var heal_amount: int = max(1, int(round(attack_power * power_scale)))
+		var heal_power_scale: float = max(0.0, float(action_data.get("power_scale", 1.0)))
+		var heal_amount: int = max(1, int(round(attack_power * heal_power_scale)))
 		var actual_heal: int = target.call("take_healing", heal_amount, self)
 		_consume_action_points(action_cost)
 		emit_signal("action_used", action_slot, action_name, target, actual_heal, self)
@@ -145,8 +145,8 @@ func perform_action(action_slot: int, target: Node = null) -> int:
 	if action_kind == ACTION_KIND_DRAIN_HEAL:
 		if target == null:
 			return 0
-		var power_scale: float = max(0.0, float(action_data.get("power_scale", 1.0)))
-		var drain_amount: int = max(1, int(round(attack_power * power_scale)))
+		var drain_power_scale: float = max(0.0, float(action_data.get("power_scale", 1.0)))
+		var drain_amount: int = max(1, int(round(attack_power * drain_power_scale)))
 		var actual_drained: int = target.call("take_drain_healing", drain_amount, self)
 		_consume_action_points(action_cost)
 		# Distribute drained health to all allied BattleActors
@@ -157,8 +157,8 @@ func perform_action(action_slot: int, target: Node = null) -> int:
 	if target == null or not target.has_method("take_damage"):
 		return 0
 
-	var power_scale: float = max(0.0, float(action_data.get("power_scale", 1.0)))
-	var raw_damage: int = max(1, int(round(attack_power * power_scale)))
+	var attack_power_scale: float = max(0.0, float(action_data.get("power_scale", 1.0)))
+	var raw_damage: int = max(1, int(round(attack_power * attack_power_scale)))
 	if action_slot == ActionSlot.SPECIAL:
 		raw_damage = max(1, int(round(raw_damage * (1.0 + float(max(0, sp)) * 0.1))))
 
@@ -196,7 +196,7 @@ func take_damage(raw_damage: int, source: Node = null) -> int:
 	return mitigated_damage
 
 
-func take_healing(heal_amount: int, healer: Node = null) -> int:
+func take_healing(heal_amount: int, _healer: Node = null) -> int:
 	if not is_alive():
 		return 0
 
@@ -207,7 +207,7 @@ func take_healing(heal_amount: int, healer: Node = null) -> int:
 	return actual_heal
 
 
-func take_drain_healing(drain_amount: int, healer: Node = null) -> int:
+func take_drain_healing(drain_amount: int, _healer: Node = null) -> int:
 	"""Called by drain_heal actions. Drains health from self and returns the amount drained.
 	The healer node will then distribute this health to its allies."""
 	if not is_alive() or drain_amount <= 0:
@@ -318,14 +318,21 @@ func _distribute_drained_health(total_drained: int, healer: Node) -> void:
 	var battle_arena: Node = _find_battle_arena_parent(healer)
 	if battle_arena == null or not battle_arena.has_method("_get_alive_actor_names"):
 		return
+	if not battle_arena.has_method("_get_actor_names_by_team"):
+		return
 
-	# Get all alive ally actor names (excluding the enemy who was drained)
-	var ally_names: Array = battle_arena.call("_get_alive_actor_names", false)
+	# Resolve healer team first so drain_heal works for both player and enemy actors.
+	var healer_name: String = str(healer.name)
+	var enemy_names: Array = battle_arena.call("_get_actor_names_by_team", true)
+	var healer_is_enemy: bool = enemy_names.has(healer_name)
+
+	# Get all alive allies on healer's own team.
+	var ally_names: Array = battle_arena.call("_get_alive_actor_names", healer_is_enemy)
 	if ally_names.is_empty():
 		return
 
 	# Calculate health per ally (integer division, distribute remainder)
-	var per_ally: int = total_drained / ally_names.size()
+	var per_ally: int = int(float(total_drained) / float(ally_names.size()))
 	var remainder: int = total_drained - (per_ally * ally_names.size())
 
 	for i in range(ally_names.size()):
