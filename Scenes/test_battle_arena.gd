@@ -1,5 +1,8 @@
 extends Node3D
 
+signal win
+signal fail
+
 # This controller owns battle setup, menu-driven input flow, and action execution.
 # In short: it spawns actors from config, lets the player pick actor -> action -> target,
 # then delegates damage logic to each actor's script.
@@ -9,8 +12,12 @@ const BATTLE_ACTOR_SCENE: PackedScene = preload("res://Scenes/Battle_Actor.tscn"
 
 # Paths for actor configuration files.
 # DEFAULT_CONFIG_PATH: The bundled default configuration within the project.
-# USER_CONFIG_PATH:  The writable user-specific configuration file.
 const DEFAULT_CONFIG_PATH := "res://Data/battle_actors.cfg"
+const LAYOUT_CONFIG_PATH := "res://Data/battle_layouts.cfg"
+const DEFAULT_LAYOUT_ID := "battle1"
+const BATTLE_LAYOUT_META_KEY := "battle_layout_id"
+const BATTLE_RETURN_SCENE_META_KEY := "battle_return_scene_path"
+const DEFAULT_RETURN_SCENE_PATH := "res://Test.tscn"
 
 const DEFAULT_ACTION_SLOT_FALLBACKS := [
 	{"name": "Attack", "kind": "attack", "cost": 100.0, "power_scale": 1.0},
@@ -27,7 +34,7 @@ const ENEMY_AI_TURN_COOLDOWN: float = 0.3
 # - position: The 3D coordinates where the actor spawns.
 # - enemy: Boolean flag indicating if this actor is an opponent (true) or ally (false).
 # - character: The key used to look up character stats/actions in the config file.
-const ARENA_SLOTS := [
+const DEFAULT_ARENA_SLOTS := [
 	{ "name": "Actor_Friend1", "position": Vector3( 2.5, 1.0, 2.5), "enemy": false, "character": "Caine"  },
 	{ "name": "Actor_Friend2", "position": Vector3( 2.5, 1.0, 7.0), "enemy": false, "character": "Alyssa" },
 	{ "name": "Actor_Friend3", "position": Vector3( 7.0, 1.0, 2.5), "enemy": false, "character": "Zeke"   },
@@ -69,9 +76,8 @@ var navigation_cursor: int = 0
 var battle_paused: bool = false
 var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var enemy_ai_cooldown_remaining: float = 0.0
-
-@export var randomize_field_positions: bool = true
-@export var assign_team_from_position: bool = true
+var battle_result_emitted: bool = false
+var active_arena_slots: Array = []
 
 # Track which ally actors currently have a full bar to detect transitions.
 var ally_full_actor_names: Array[String] = []
@@ -83,17 +89,20 @@ var ally_full_actor_names: Array[String] = []
 # Sets up the arena by spawning actors, caching data, and binding UI.
 # The order here matters: spawn first so cache/bind logic can find valid nodes.
 func _ready() -> void:
+	active_arena_slots = _load_active_arena_slots()
 	rng.randomize()
 	_spawn_arena_actors()       # Create actor instances based on config.
 	_cache_arena_actor_nodes()  # Build lookup dictionaries for fast access.
+	_bind_actor_defeat_signals()
 	_debug_print_field_layout()
 	_bind_selection_buttons()   # Connect UI signals and setup menus.
 	_refresh_selection_flow()   # Initialize the UI state to a clean slate.
+	_check_battle_end_conditions()
 
 
 func _debug_print_field_layout() -> void:
 	var layout_parts: Array[String] = []
-	for slot in ARENA_SLOTS:
+	for slot in active_arena_slots:
 		var actor_name: String = str(slot.get("name", ""))
 		if actor_name.is_empty():
 			continue
@@ -138,6 +147,8 @@ func _check_ally_full_bar_and_pause() -> void:
 # Confirm keys: Space, Enter, Left Arrow.
 # Back key: Right Arrow.
 func _unhandled_input(event: InputEvent) -> void:
+	if battle_result_emitted:
+		return
 	if not (event is InputEventKey) or not event.pressed or event.echo:
 		return
 
@@ -166,7 +177,7 @@ func _cache_arena_actor_nodes() -> void:
 	actor_nodes_by_name.clear()
 	actor_is_enemy_by_name.clear()
 	actor_display_names_by_name.clear()
-	for slot in ARENA_SLOTS:
+	for slot in active_arena_slots:
 		var actor_name: String = str(slot.get("name", ""))
 		if actor_name.is_empty():
 			continue
@@ -407,6 +418,8 @@ func _on_action_button_pressed(button_index: int) -> void:
 # Called when a target selection button is pressed.
 # Executes the selected action on the target and resets the flow.
 func _on_target_button_pressed(button_index: int) -> void:
+	if battle_result_emitted:
+		return
 	if selected_actor_name.is_empty() or selected_action_slot < 0:
 		return
 	if button_index < 0 or button_index >= target_button_target_names.size():
@@ -571,6 +584,8 @@ func _apply_navigation_visuals() -> void:
 # This function is intentionally strict about validation so UI bugs do not
 # silently apply invalid actions.
 func _execute_action(actor_name: String, action_slot: int, target_name: String) -> void:
+	if battle_result_emitted:
+		return
 	var actor_node: Node = _get_actor_by_name(actor_name)
 	var actor_label: String = _get_actor_display_name(actor_name)
 	if actor_node == null:
@@ -626,11 +641,15 @@ func _execute_action(actor_name: String, action_slot: int, target_name: String) 
 	else:
 		print("%s uses %s on %s for %d damage. HP %d/%d" % [actor_label, action_name, target_label, damage, target_health, target_max_health])
 
+	_check_battle_end_conditions()
+
 
 # --- Basic Enemy AI ---
 
 # Runs one enemy turn when not paused and an enemy action bar is full.
 func _run_enemy_ai_turn() -> void:
+	if battle_result_emitted:
+		return
 	if battle_paused:
 		return
 	if enemy_ai_cooldown_remaining > 0.0:
@@ -772,6 +791,42 @@ func _get_actor_display_name(actor_name: String) -> String:
 		return str(actor_display_names_by_name[actor_name])
 	return actor_name
 
+
+func _bind_actor_defeat_signals() -> void:
+	for actor_name in actor_nodes_by_name.keys():
+		var actor_node: Node = _get_actor_by_name(str(actor_name))
+		if actor_node == null or not actor_node.has_signal("defeated"):
+			continue
+		var on_defeated := Callable(self, "_on_actor_defeated").bind(str(actor_name))
+		if not actor_node.is_connected("defeated", on_defeated):
+			actor_node.connect("defeated", on_defeated)
+
+
+func _on_actor_defeated(_source: Node, _actor_name: String) -> void:
+	_check_battle_end_conditions()
+	if not battle_result_emitted:
+		_refresh_selection_flow()
+
+
+func _check_battle_end_conditions() -> void:
+	if battle_result_emitted:
+		return
+
+	if _get_alive_actor_names(true).is_empty():
+		battle_result_emitted = true
+		battle_paused = true
+		BattleActor.battle_paused = true
+		emit_signal("win")
+		call_deferred("_return_to_overworld")
+		return
+
+	if _get_alive_actor_names(false).is_empty():
+		battle_result_emitted = true
+		battle_paused = true
+		BattleActor.battle_paused = true
+		emit_signal("fail")
+		call_deferred("_return_to_overworld")
+
 # Resolves the display name from the actor's Label3D node, if available.
 func _resolve_actor_display_name(actor_name: String, actor_node: Node) -> String:
 	if actor_node != null:
@@ -794,12 +849,79 @@ func _load_cfg() -> ConfigFile:
 		return null
 	return cfg
 
+
+func _load_layout_cfg() -> ConfigFile:
+	var cfg := ConfigFile.new()
+	var err := cfg.load(LAYOUT_CONFIG_PATH)
+	if err != OK:
+		push_warning("battle_arena: failed to load layout config %s (error %d), using defaults" % [LAYOUT_CONFIG_PATH, err])
+		return null
+	return cfg
+
+
+func _resolve_battle_layout_id() -> String:
+	var requested_layout_id: String = str(get_tree().get_meta(BATTLE_LAYOUT_META_KEY, DEFAULT_LAYOUT_ID)).strip_edges().to_lower()
+	# Consume the request so later scene loads do not accidentally reuse this layout.
+	get_tree().set_meta(BATTLE_LAYOUT_META_KEY, DEFAULT_LAYOUT_ID)
+	if requested_layout_id.is_empty():
+		return DEFAULT_LAYOUT_ID
+	return requested_layout_id
+
+
+func _return_to_overworld() -> void:
+	var return_scene_path: String = str(get_tree().get_meta(BATTLE_RETURN_SCENE_META_KEY, DEFAULT_RETURN_SCENE_PATH)).strip_edges()
+	# Consume the return target so stale values are not reused later.
+	get_tree().set_meta(BATTLE_RETURN_SCENE_META_KEY, DEFAULT_RETURN_SCENE_PATH)
+	if return_scene_path.is_empty():
+		return_scene_path = DEFAULT_RETURN_SCENE_PATH
+
+	var err: Error = get_tree().change_scene_to_file(return_scene_path)
+	if err != OK:
+		push_error("battle_arena: failed to return to scene '%s' (error %d)" % [return_scene_path, err])
+
+
+func _load_active_arena_slots() -> Array:
+	var layout_cfg: ConfigFile = _load_layout_cfg()
+	if layout_cfg == null:
+		return DEFAULT_ARENA_SLOTS.duplicate(true)
+
+	var layout_id: String = _resolve_battle_layout_id()
+	var section: String = "layout.%s" % layout_id
+	if not layout_cfg.has_section(section):
+		push_warning("battle_arena: layout '%s' not found, using '%s'" % [layout_id, DEFAULT_LAYOUT_ID])
+		section = "layout.%s" % DEFAULT_LAYOUT_ID
+
+	if not layout_cfg.has_section(section):
+		return DEFAULT_ARENA_SLOTS.duplicate(true)
+
+	var slot_count: int = int(layout_cfg.get_value(section, "slot_count", 0))
+	var slots: Array = []
+	for slot_index in range(slot_count):
+		var base_key: String = "slot.%d" % slot_index
+		var actor_name: String = str(layout_cfg.get_value(section, "%s.name" % base_key, "")).strip_edges()
+		var character_name: String = str(layout_cfg.get_value(section, "%s.character" % base_key, "")).strip_edges()
+		if actor_name.is_empty() or character_name.is_empty():
+			continue
+
+		slots.append({
+			"name": actor_name,
+			"position": layout_cfg.get_value(section, "%s.position" % base_key, Vector3.ZERO),
+			"enemy": bool(layout_cfg.get_value(section, "%s.enemy" % base_key, false)),
+			"character": character_name,
+		})
+
+	if slots.is_empty():
+		push_warning("battle_arena: layout '%s' has no valid slots, using defaults" % layout_id)
+		return DEFAULT_ARENA_SLOTS.duplicate(true)
+
+	return slots
+
 # Loads configuration for all actors in the arena.
-# This combines static slot placement (ARENA_SLOTS) with per-character roster data.
+# This combines active layout slots with per-character roster data.
 func _load_actor_configs() -> Array:
 	var roster := _load_roster()
 	var configs: Array = []
-	for slot in ARENA_SLOTS:
+	for slot in active_arena_slots:
 		var char_key: String = str(slot.get("character", ""))
 		var char_data: Dictionary = roster.get(char_key, {})
 		if char_data.is_empty():
@@ -816,33 +938,7 @@ func _load_actor_configs() -> Array:
 			"speed":     char_data.get("speed", 10.0),
 			"actions":   char_data.get("actions", []),
 		})
-
-	if randomize_field_positions:
-		_shuffle_actor_positions(configs)
 	return configs
-
-
-func _shuffle_actor_positions(configs: Array) -> void:
-	if configs.size() <= 1:
-		return
-
-	var positions: Array = []
-	for config in configs:
-		positions.append(config.get("position", Vector3.ZERO))
-
-	# Fisher-Yates shuffle so any actor can spawn in any field slot.
-	for i in range(positions.size() - 1, 0, -1):
-		var swap_index: int = rng.randi_range(0, i)
-		var temp_position: Vector3 = positions[i]
-		positions[i] = positions[swap_index]
-		positions[swap_index] = temp_position
-
-	for i in range(configs.size()):
-		var config: Dictionary = configs[i]
-		config["position"] = positions[i]
-		if assign_team_from_position:
-			config["enemy"] = float(config["position"].x) < 0.0
-		configs[i] = config
 
 # Loads the roster from the configuration file.
 # Expected section shape:

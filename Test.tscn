@@ -1,6 +1,8 @@
 [gd_scene format=3 uid="uid://deme42v031mf2"]
 
 [ext_resource type="PackedScene" uid="uid://dr8gy24xbf8g8" path="res://Actor.tscn" id="1_myinc"]
+[ext_resource type="PackedScene" uid="uid://c7s77b3x2ahpf" path="res://Terain/Models/Ground_Grade-Body.gltf" id="2_njov2"]
+[ext_resource type="Script" uid="uid://cc8j4q2w39f7h" path="res://Scenes/play_ground.gd" id="3_playground_script"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_rvu7i"]
 size = Vector3(60, 2, 60)
@@ -13,6 +15,7 @@ material = SubResource("StandardMaterial3D_myinc")
 size = Vector3(60, 2, 60)
 
 [node name="Node3D" type="Node3D" unique_id=1981837370]
+script = ExtResource("3_playground_script")
 
 [node name="Ground" type="StaticBody3D" parent="." unique_id=142237344]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5040357, 0)
@@ -31,3 +34,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6542233, 0)
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1096508745]
 transform = Transform3D(1, 0, 0, 0, -0.5371377, 0.8434947, 0, -0.8434947, -0.5371377, 0, 58.715195, -52.88103)
+
+[node name="Battle1" parent="." unique_id=1639964417 instance=ExtResource("2_njov2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27, 1, -24)

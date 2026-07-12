@@ -28,11 +28,10 @@ func MovementProcess(delta: float) -> void:
 
 	# Get the input direction and handle the movement/deceleration.
 	# As good practice, you should replace UI actions with custom gameplay actions.
-	# TODO: Make player movement relative to camera position
 	# TODO: Make camera rotatable
 	var input_dir := Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
-	var direction := (transform.basis * Vector3(input_dir.x, 0, input_dir.y))
-	direction.rotated(Vector3.UP, cameraRotation.y).normalized()
+	var direction := Vector3(input_dir.x, 0, input_dir.y)
+	direction = direction.rotated(Vector3.UP, cameraRotation.y).normalized()
 	if direction:
 		velocity.x = direction.x * SPEED
 		velocity.z = direction.z * SPEED
