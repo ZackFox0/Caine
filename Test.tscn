@@ -2,7 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://dr8gy24xbf8g8" path="res://Actor.tscn" id="1_myinc"]
 [ext_resource type="PackedScene" uid="uid://c7s77b3x2ahpf" path="res://Terain/Models/Ground_Grade-Body.gltf" id="2_njov2"]
-[ext_resource type="Script" uid="uid://cc8j4q2w39f7h" path="res://Scenes/play_ground.gd" id="3_playground_script"]
+[ext_resource type="Script" uid="uid://0gki3q8cw23k" path="res://Scenes/play_ground.gd" id="3_playground_script"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_rvu7i"]
 size = Vector3(60, 2, 60)
@@ -37,3 +37,15 @@ transform = Transform3D(1, 0, 0, 0, -0.5371377, 0.8434947, 0, -0.8434947, -0.537
 
 [node name="Battle1" parent="." unique_id=1639964417 instance=ExtResource("2_njov2")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27, 1, -24)
+
+[node name="Battle2" parent="." unique_id=1382385116 instance=ExtResource("2_njov2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.593557, 1, -24)
+
+[node name="Battle3" parent="." unique_id=1757602258 instance=ExtResource("2_njov2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.238386, 1, -24)
+
+[node name="Battle4" parent="." unique_id=545395021 instance=ExtResource("2_njov2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.2067337, 1, -24)
+
+[node name="Battle5" parent="." unique_id=1695581106 instance=ExtResource("2_njov2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17.765194, 1, -24)

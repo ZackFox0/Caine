@@ -146,6 +146,7 @@ func _check_ally_full_bar_and_pause() -> void:
 # Navigation keys: Up/Down and W/S/A/D.
 # Confirm keys: Space, Enter, Left Arrow.
 # Back key: Right Arrow.
+# Dumb. Use built in input handling.
 func _unhandled_input(event: InputEvent) -> void:
 	if battle_result_emitted:
 		return
@@ -263,21 +264,17 @@ func _refresh_actor_buttons() -> void:
 	var controllable_actor_names: Array = _get_alive_actor_names(false)
 	if controllable_actor_names.is_empty():
 		controllable_actor_names = _get_actor_names_by_team(false)
-
 	for button_index in range(4):
 		var button: MenuButton = actor_select_buttons[button_index]
 		if button == null:
 			continue
-
 		var actor_name: String = ""
 		if button_index < controllable_actor_names.size():
 			actor_name = str(controllable_actor_names[button_index])
-
 		actor_button_actor_names[button_index] = actor_name
 		button.visible = not actor_name.is_empty()
 		if button.visible:
 			button.text = _get_actor_display_name(actor_name)
-
 	_apply_navigation_visuals()
 
 # Displays action buttons for a selected actor, populated from the actor's config.
@@ -286,7 +283,6 @@ func _refresh_actor_buttons() -> void:
 func _show_action_buttons_for_actor(actor_name: String) -> void:
 	selected_action_slot = -1
 	var actor_node: Node = _get_actor_by_name(actor_name)
-
 	var slot_data_list: Array = []
 	if actor_node != null and actor_node.has_method("get_action_data_list"):
 		slot_data_list = Array(actor_node.call("get_action_data_list"))
@@ -297,39 +293,33 @@ func _show_action_buttons_for_actor(actor_name: String) -> void:
 			{"name": "Special",      "kind": "attack"},
 			{"name": "Empty",        "kind": "empty"},
 		]
-
 	for button_index in range(4):
 		var button: MenuButton = action_select_buttons[button_index]
 		if button == null:
 			continue
-
 		action_button_slots[button_index] = -1
 		action_button_names[button_index] = ""
 		button.visible = false
-
 		if button_index >= slot_data_list.size():
 			continue
-
 		var slot_data: Dictionary = slot_data_list[button_index]
 		var action_kind: String = str(slot_data.get("kind", "attack")).strip_edges().to_lower()
 		if action_kind == "empty":
 			continue
-
 		var action_name: String = str(slot_data.get("name", "")).strip_edges()
 		if action_name.is_empty():
 			continue
-
 		action_button_slots[button_index] = button_index
 		action_button_names[button_index] = action_name
 		button.text = action_name
 		button.visible = true
-
 	navigation_cursor = 0
 	_apply_navigation_visuals()
 
 # Displays target buttons for a selected actor, populated from opponent actors.
 # Prioritizes alive opponents; falls back to team list when everyone is defeated.
 # If the selected action is a heal kind, shows alive allies as targets instead.
+# Could be collapsed into the config file, reducing the 'kind' searches.
 func _show_target_buttons_for_actor(actor_name: String) -> void:
 	var action_data_list: Array = _get_action_data_list_for_actor(actor_name)
 	var actor_is_enemy: bool = bool(actor_is_enemy_by_name.get(actor_name, false))
@@ -338,9 +328,8 @@ func _show_target_buttons_for_actor(actor_name: String) -> void:
 		var slot_data: Dictionary = action_data_list[selected_action_slot]
 		if slot_data is Dictionary:
 			action_kind = str(slot_data.get("kind", "attack")).strip_edges().to_lower()
-
 	var target_names: Array = []
-	if action_kind == "heal" or action_kind == "drain_heal":
+	if action_kind == "heal" or action_kind == "drain_heal": #Broken shit! Needs seperated.
 		target_names = _get_alive_actor_names(actor_is_enemy)
 		if target_names.is_empty():
 			target_names = _get_actor_names_by_team(actor_is_enemy)
@@ -350,21 +339,17 @@ func _show_target_buttons_for_actor(actor_name: String) -> void:
 			pass
 		else:
 			target_names = _get_actor_names_by_team(not actor_is_enemy)
-
 	for button_index in range(4):
 		var button: MenuButton = target_select_buttons[button_index]
 		if button == null:
 			continue
-
 		var target_name: String = ""
 		if button_index < target_names.size():
 			target_name = str(target_names[button_index])
-
 		target_button_target_names[button_index] = target_name
 		button.visible = not target_name.is_empty()
 		if button.visible:
 			button.text = _get_actor_display_name(target_name)
-
 	navigation_cursor = 0
 	_apply_navigation_visuals()
 
@@ -417,6 +402,7 @@ func _on_action_button_pressed(button_index: int) -> void:
 
 # Called when a target selection button is pressed.
 # Executes the selected action on the target and resets the flow.
+# So MANY RETURNS!!!
 func _on_target_button_pressed(button_index: int) -> void:
 	if battle_result_emitted:
 		return
@@ -427,7 +413,6 @@ func _on_target_button_pressed(button_index: int) -> void:
 	var target_name: String = str(target_button_target_names[button_index])
 	if target_name.is_empty():
 		return
-
 	_execute_action(selected_actor_name, selected_action_slot, target_name)
 	_refresh_selection_flow()
 	_unpause_battle()
@@ -436,6 +421,7 @@ func _on_target_button_pressed(button_index: int) -> void:
 # --- Battle Pause Control ---
 
 # Resumes action bar filling after the player's action has been executed.
+# Could be colapsed into one func with pause/play functions.
 func _unpause_battle() -> void:
 	battle_paused = false
 	BattleActor.battle_paused = false
@@ -455,13 +441,11 @@ func _array_has_new_element(new_arr: Array[String], old_arr: Array[String]) -> b
 func _move_navigation_cursor(direction: int) -> void:
 	if direction == 0:
 		return
-
 	var option_indices: Array = _get_current_navigation_option_indices()
 	if option_indices.is_empty():
 		navigation_cursor = 0
 		_apply_navigation_visuals()
 		return
-
 	navigation_cursor = wrapi(navigation_cursor + direction, 0, option_indices.size())
 	_apply_navigation_visuals()
 
@@ -470,10 +454,8 @@ func _confirm_navigation_selection() -> void:
 	var option_indices: Array = _get_current_navigation_option_indices()
 	if option_indices.is_empty():
 		return
-
 	navigation_cursor = clampi(navigation_cursor, 0, option_indices.size() - 1)
 	var button_index: int = int(option_indices[navigation_cursor])
-
 	match _get_navigation_stage():
 		0:
 			_on_actor_button_pressed(button_index)
@@ -535,30 +517,25 @@ func _get_current_navigation_option_indices() -> Array:
 					indices.append(button_index)
 	return indices
 
-
+# Used to hide and unhide UI elements in the propper order.
 func _apply_navigation_visuals() -> void:
 	for button_index in range(4):
 		var actor_button: MenuButton = actor_select_buttons[button_index]
 		if actor_button != null and actor_button.visible:
 			actor_button.text = _get_actor_display_name(str(actor_button_actor_names[button_index]))
-
 		var action_button: MenuButton = action_select_buttons[button_index]
 		if action_button != null and action_button.visible:
 			action_button.text = str(action_button_names[button_index])
-
 		var target_button: MenuButton = target_select_buttons[button_index]
 		if target_button != null and target_button.visible:
 			target_button.text = _get_actor_display_name(str(target_button_target_names[button_index]))
-
 	var option_indices: Array = _get_current_navigation_option_indices()
 	if option_indices.is_empty():
 		navigation_cursor = 0
 		return
-
 	navigation_cursor = clampi(navigation_cursor, 0, option_indices.size() - 1)
 	var selected_button_index: int = int(option_indices[navigation_cursor])
 	var selected_label: String = ""
-
 	match _get_navigation_stage():
 		0:
 			selected_label = _get_actor_display_name(str(actor_button_actor_names[selected_button_index]))
@@ -583,6 +560,7 @@ func _apply_navigation_visuals() -> void:
 # Validates actor and target states, retrieves action details, and calls the actor's method.
 # This function is intentionally strict about validation so UI bugs do not
 # silently apply invalid actions.
+# needs broken into smaller portions for readability and moddability.
 func _execute_action(actor_name: String, action_slot: int, target_name: String) -> void:
 	if battle_result_emitted:
 		return
@@ -654,20 +632,16 @@ func _run_enemy_ai_turn() -> void:
 		return
 	if enemy_ai_cooldown_remaining > 0.0:
 		return
-
 	var ready_enemies: Array = _get_ready_enemy_names()
 	if ready_enemies.is_empty():
 		return
-
 	var enemy_name: String = str(ready_enemies[rng.randi_range(0, ready_enemies.size() - 1)])
 	var action_slot: int = _pick_random_usable_action_slot(enemy_name)
 	if action_slot < 0:
 		return
-
 	var target_name: String = _pick_random_target_for_action(enemy_name, action_slot)
 	if target_name.is_empty():
 		return
-
 	_execute_action(enemy_name, action_slot, target_name)
 	_refresh_selection_flow()
 	enemy_ai_cooldown_remaining = ENEMY_AI_TURN_COOLDOWN
@@ -693,29 +667,23 @@ func _pick_random_usable_action_slot(actor_name: String) -> int:
 	var actor_node: Node = _get_actor_by_name(actor_name)
 	if actor_node == null:
 		return -1
-
 	var action_data_list: Array = _get_action_data_list_for_actor(actor_name)
 	var usable_slots: Array[int] = []
 	for slot_index in range(action_data_list.size()):
 		var slot_data: Dictionary = action_data_list[slot_index]
 		if not (slot_data is Dictionary):
 			continue
-
 		var action_kind: String = str(slot_data.get("kind", "attack")).strip_edges().to_lower()
 		if action_kind == "empty":
 			continue
-
 		if actor_node.has_method("can_use_action") and not actor_node.call("can_use_action", slot_index):
 			continue
-
 		usable_slots.append(slot_index)
-
 	if usable_slots.is_empty():
 		return -1
-
 	return usable_slots[rng.randi_range(0, usable_slots.size() - 1)]
 
-
+#Trash AI! Could be worked into a propper AI
 func _pick_random_target_for_action(actor_name: String, action_slot: int) -> String:
 	if actor_name.is_empty() or action_slot < 0:
 		return ""

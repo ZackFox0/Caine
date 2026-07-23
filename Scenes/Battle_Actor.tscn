@@ -153,7 +153,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_h2aga")
 }],
-"loop": true,
+"loop": 1,
 "name": &"Albert",
 "speed": 5.0
 }, {
@@ -170,7 +170,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_wwhan")
 }],
-"loop": true,
+"loop": 1,
 "name": &"Alyssa",
 "speed": 5.0
 }, {
@@ -187,7 +187,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_uioh2")
 }],
-"loop": true,
+"loop": 1,
 "name": &"Canin",
 "speed": 5.0
 }, {
@@ -204,7 +204,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_3osae")
 }],
-"loop": true,
+"loop": 1,
 "name": &"Jack",
 "speed": 5.0
 }, {
@@ -221,7 +221,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_25g7c")
 }],
-"loop": true,
+"loop": 1,
 "name": &"Logos",
 "speed": 5.0
 }, {
@@ -238,7 +238,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_e45ux")
 }],
-"loop": true,
+"loop": 1,
 "name": &"Lyre",
 "speed": 5.0
 }, {
@@ -255,7 +255,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_kqlv6")
 }],
-"loop": true,
+"loop": 1,
 "name": &"Ster",
 "speed": 5.0
 }, {
@@ -272,7 +272,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_blfg3")
 }],
-"loop": true,
+"loop": 1,
 "name": &"Zeke",
 "speed": 5.0
 }]
@@ -305,7 +305,7 @@ sprite_frames = SubResource("SpriteFrames_5ldsp")
 animation = &"Canin"
 
 [node name="Label3D" type="Label3D" parent="." unique_id=1115311129]
-transform = Transform3D(1, 0, 0, 0, 0.94913465, -0.31487057, 0, 0.31487057, 0.94913465, 0, 3.42889, 0)
+transform = Transform3D(1, 0, 0, 0, 0.97941, 0.20188141, 0, -0.20188141, 0.97941, 0, 3.42889, 0)
 modulate = Color(0.64582384, 0.0040972745, 0.99010044, 1)
 text = "Caine"
 font_size = 78
